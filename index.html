@@ -1,19 +1,33 @@
 <html>
   <head>
+    <meta property="og:charset" content="UTF-8"/>
     <title>Spot-hinnat Suomessa</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="apple-mobile-web-app-title" content="lähteenmäki.net"/>
+    <meta name="application-name" content="lähteenmäki.net"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
     <script src="./dist/bundle.js"></script>
     <style type="text/css">
       body {
-        display: flex;
-        flex-direction: column;
+        margin: 0;
+        overflow: hidden;
+      }
+      input {
+        width: 100%;
+        height: 22px;
+      }
+      .container {
+        position:relative;
+        height: 80vh;
+        height: calc(99dvh - 22px);
       }
     </style>
   </head>
 <body>
-  <input id="query" size="150" value="select * from spot where instant between datetime('{start}') and datetime('{end}')" placeholder="your query here..." />
+  <input id="query" value="select * from spot where instant between datetime('{start}') and datetime('{end}')" placeholder="your query here..." />
   <div class="container">
     <canvas id="chart"></canvas>
   </div>
@@ -64,7 +78,7 @@
             },
             borderWidth: 1,
             borderColor: 'gray',
-            mantainAspectRatio: false,
+            maintainAspectRatio: false,
             responsive: true,
             plugins: {
               zoom: {
