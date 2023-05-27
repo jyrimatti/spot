@@ -1,0 +1,99 @@
+<html>
+  <head>
+    <title>Spot-hinnat Suomessa</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
+    <script src="./dist/bundle.js"></script>
+    <style type="text/css">
+      body {
+        display: flex;
+        flex-direction: column;
+      }
+    </style>
+  </head>
+<body>
+  <input id="query" size="150" value="select * from spot where instant between datetime('{start}') and datetime('{end}')" placeholder="your query here..." />
+  <div class="container">
+    <canvas id="chart"></canvas>
+  </div>
+  <script type="text/javascript">
+    let readInterval = () => {
+      let initialInterval = window.location.hash ? window.location.hash.substring(1).split('/').map(x => new Date(x))
+                                                 : [new Date(new Date().getTime() - 1000*60*60*24), new Date(new Date().getTime() + 1000*60*60*24)];
+      return {start: initialInterval[0], end: initialInterval[1]};
+    };
+
+    let interval = readInterval();
+    let q = document.getElementById('query');
+    q.value = q.value.replace("{start}", interval.start.toISOString()).replace("{end}", interval.end.toISOString());
+    
+    let getData = function(name, queryF, cb) {
+      console.log("Querying " + name + " for " + JSON.stringify(interval));
+      let start = Math.floor(interval.start.getTime()/1000);
+      let end = Math.floor((interval.end.getTime()/1000));
+      spot(queryF(start, end))
+        .then(function(data) {
+          if (data == "") {
+            console.log("Got empty data for " + name);
+          } else {
+            console.log("Got " + data.length + " rows for " + name);
+          }
+          cb(data);
+        });
+    };
+
+    let initGraph = data => {
+      let chart = document.getElementById('chart');
+      if (chart.myChart) {
+        chart.myChart.destroy();
+      }
+      chart.myChart = new Chart(chart.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: data.map(x => x.instant),
+            datasets: [{
+                label: 'c/kWh',
+                data: data,
+            }, ],
+        },
+        options: {
+            parsing: {
+              xAxisKey: 'instant',
+              yAxisKey: 'centsPerKWh'
+            },
+            borderWidth: 1,
+            borderColor: 'gray',
+            mantainAspectRatio: false,
+            responsive: true,
+            plugins: {
+              zoom: {
+                pan: {
+                  enabled: true,
+                  mode: 'xy'
+                },
+                zoom: {
+                  wheel: {
+                    enabled: true
+                  },
+                  pinch: {
+                    enabled: true
+                  },
+                  mode: 'xy'
+                }
+              }
+            }
+        }
+      });
+    };
+
+    let init = () => {
+      getData("spot", (start, end) => document.getElementById('query').value.replace("{start}", start).replace("{end}", end), initGraph);
+    };
+
+    init();
+    q.addEventListener('change', init);
+  </script>
+</body>
+</html>
+
