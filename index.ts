@@ -14,7 +14,7 @@ async function load(db: string, query: string) {
         from: "inline",
         config: {
           serverMode: "full",
-          url: "/spot.db",
+          url: "/spot/spot.db",
           requestChunkSize: 4096,
         },
       },
