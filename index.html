@@ -3,11 +3,12 @@
     <meta property="og:charset" content="UTF-8"/>
     <title>Spot-hinnat Suomessa</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="apple-mobile-web-app-title" content="lähteenmäki.net"/>
-    <meta name="application-name" content="lähteenmäki.net"/>
+    <meta name="apple-mobile-web-app-title" content="Spot"/>
+    <meta name="application-name" content="Spot"/>
     <meta name="apple-mobile-web-app-capable" content="yes"/>
     <meta name="mobile-web-app-capable" content="yes"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="http://hammerjs.github.io/dist/hammer.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
     <script src="./dist/bundle.js"></script>
     <style type="text/css">
@@ -32,6 +33,11 @@
     <canvas id="chart"></canvas>
   </div>
   <script type="text/javascript">
+    if (window.location.search != '?sala1nenSalsasana') {
+      document.body.innerHTML = '';
+      throw new Error("authorization required");
+    }
+
     let readInterval = () => {
       let initialInterval = window.location.hash ? window.location.hash.substring(1).split('/').map(x => new Date(x))
                                                  : [new Date(new Date().getTime() - 1000*60*60*24), new Date(new Date().getTime() + 1000*60*60*24)];
@@ -53,7 +59,7 @@
           } else {
             console.log("Got " + data.length + " rows for " + name);
           }
-          cb(data);
+          cb(data.map(x => ({...x, instant: zonedTimeToUtc(x.instant, 'Europe/Brussels')})));
         });
     };
 
@@ -65,13 +71,39 @@
       chart.myChart = new Chart(chart.getContext('2d'), {
         type: 'bar',
         data: {
-            labels: data.map(x => x.instant),
+            labels: data.map(x => {
+              let time = formatInTimeZone(x.instant, 'Europe/Helsinki', 'HH:mm');
+              let date = formatInTimeZone(x.instant, 'Europe/Helsinki', 'yyyy-MM-dd');
+              return x.instant.getHours() == 0 ? [time, date] : time
+            }),
             datasets: [{
                 label: 'c/kWh',
                 data: data,
+                backgroundColor: data.map(x => {
+                  let now = new Date();
+                  let opacity = 0.1 + Math.abs(x.centsPerKWh / 40);
+                  if (x.instant <= now && now < addHours(x.instant, 1)) {
+                    return 'rgba(0,0,255, ' + opacity + ')';
+                  } else if (x.centsPerKWh < 0) {
+                    return 'rgba(0,255,0, ' + opacity + ')';
+                  } else {
+                    return 'rgba(255,0,0, ' + opacity + ')'
+                  }
+                })
             }, ],
         },
         options: {
+            scales: {
+              x: {
+                ticks: {
+                  labelOffset: -12
+                }
+              },
+              y: {
+                suggestedMin: 0,
+                suggestedMax: 10
+              }
+            },
             parsing: {
               xAxisKey: 'instant',
               yAxisKey: 'centsPerKWh'
@@ -81,6 +113,14 @@
             maintainAspectRatio: false,
             responsive: true,
             plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                  callbacks: {
+                    title: context => formatInTimeZone(context[0].raw.instant, 'Europe/Helsinki', 'yyyy-MM-dd HH:mm') + ' - ' + formatInTimeZone(addHours(context[0].raw.instant, 1), 'Europe/Helsinki', 'HH:mm')
+                  }
+                },
               zoom: {
                 pan: {
                   enabled: true,

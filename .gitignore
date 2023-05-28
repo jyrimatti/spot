@@ -1,2 +1,4 @@
 spot.db
 dist
+package.json
+package-lock.json

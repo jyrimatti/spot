@@ -4,5 +4,5 @@ set -eu
 
 echo '{}' > package.json
 npm install --save-dev webpack webpack-cli typescript ts-loader http-server
-npm install --save sql.js-httpvfs
+npm install --save sql.js-httpvfs date-fns date-fns-tz
 npx tsc --init

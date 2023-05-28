@@ -1,4 +1,7 @@
 import { createDbWorker } from "sql.js-httpvfs";
+import { zonedTimeToUtc, formatInTimeZone } from 'date-fns-tz';
+import {addHours} from 'date-fns';
+import {fi} from 'date-fns/locale';
 
 const workerUrl = new URL(
   "sql.js-httpvfs/dist/sqlite.worker.js",
@@ -28,3 +31,7 @@ async function load(db: string, query: string) {
 }
 
 (window as any).spot = (query: string) => load('spot', query);
+(window as any).zonedTimeToUtc = zonedTimeToUtc;
+(window as any).formatInTimeZone = formatInTimeZone;
+(window as any).addHours = addHours;
+(window as any).fi = fi;
