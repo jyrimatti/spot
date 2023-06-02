@@ -1,6 +1,5 @@
 #! /usr/bin/env nix-shell
 #! nix-shell -I channel:nixos-22.11-small -i bash -p curl
-set -eu
 
 if [ $# -eq 0 ];
 then 
