@@ -7,9 +7,9 @@
     <meta name="application-name" content="Spot"/>
     <meta name="apple-mobile-web-app-capable" content="yes"/>
     <meta name="mobile-web-app-capable" content="yes"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="http://hammerjs.github.io/dist/hammer.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/2.0.1/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
     <script src="./dist/bundle.js"></script>
     <style type="text/css">
       body {
@@ -31,7 +31,7 @@
 <body>
   <input id="query" value="select * from spot where instant between datetime('{start}') and datetime('{end}')" placeholder="your query here..." />
   <div class="container">
-    <canvas id="chart"></canvas>
+    <div id="chart"></div>
   </div>
   <script type="text/javascript">
     if (window.location.search != '?sala1nenSalsasana') {
@@ -41,7 +41,7 @@
 
     let readInterval = () => {
       let initialInterval = window.location.hash ? window.location.hash.substring(1).split('/').map(x => new Date(x))
-                                                 : [new Date(new Date().getTime() - 1000*60*60*24), new Date(new Date().getTime() + 1000*60*60*24)];
+                                                 : [new Date(new Date().getTime() - 1000*60*60*24*30), new Date(new Date().getTime() + 1000*60*60*24*2)];
       return {start: initialInterval[0], end: initialInterval[1]};
     };
 
@@ -60,90 +60,88 @@
           } else {
             console.log("Got " + data.length + " rows for " + name);
           }
-          cb(data.map(x => ({...x, instant: zonedTimeToUtc(x.instant, 'Europe/Brussels')})));
+          cb(data.map(x => ({...x, instant: zonedTimeToUtc(x.instant, 'Europe/Brussels').getTime()})));
         });
     };
 
-    let initGraph = data => {
-      let chart = document.getElementById('chart');
-      if (chart.myChart) {
-        chart.myChart.destroy();
-      }
-      chart.myChart = new Chart(chart.getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: data.map(x => {
-              let time = formatInTimeZone(x.instant, 'Europe/Helsinki', 'HH:mm');
-              let date = formatInTimeZone(x.instant, 'Europe/Helsinki', 'yyyy-MM-dd');
-              return x.instant.getHours() == 0 ? [time, date] : time
-            }),
-            datasets: [{
-                label: 'c/kWh',
-                data: data,
-                backgroundColor: data.map(x => {
-                  let now = new Date();
-                  let opacity = 0.1 + Math.abs(x.centsPerKWh / 40);
-                  if (x.instant <= now && now < addHours(x.instant, 1)) {
-                    return 'rgba(0,0,255, ' + opacity + ')';
-                  } else if (x.centsPerKWh < 0) {
-                    return 'rgba(0,255,0, ' + opacity + ')';
-                  } else {
-                    return 'rgba(255,0,0, ' + opacity + ')'
-                  }
-                })
-            }, ],
-        },
-        options: {
-            scales: {
-              x: {
-                ticks: {
-                  labelOffset: -12
-                }
-              },
-              y: {
-                suggestedMin: 0,
-                suggestedMax: 10
-              }
-            },
-            parsing: {
-              xAxisKey: 'instant',
-              yAxisKey: 'centsPerKWh'
-            },
-            borderWidth: 1,
-            borderColor: 'gray',
-            maintainAspectRatio: false,
-            responsive: true,
-            plugins: {
-              legend: {
-                display: false
-              },
-              tooltip: {
-                  callbacks: {
-                    title: context => formatInTimeZone(context[0].raw.instant, 'Europe/Helsinki', 'yyyy-MM-dd HH:mm') + ' - ' + formatInTimeZone(addHours(context[0].raw.instant, 1), 'Europe/Helsinki', 'HH:mm')
-                  }
-                },
-              zoom: {
-                pan: {
-                  enabled: true,
-                  mode: 'xy'
-                },
-                zoom: {
-                  wheel: {
-                    enabled: true
-                  },
-                  pinch: {
-                    enabled: true
-                  },
-                  mode: 'xy'
-                }
-              }
-            }
-        }
-      });
-    };
+    let root = am5.Root.new("chart"); 
+    root.setThemes([
+      am5themes_Animated.new(root)
+    ]);
+
+    let chart = root.container.children.push( 
+      am5xy.XYChart.new(root, {
+        panX: true,
+        panY: false,
+        wheelY: "zoomX",
+        layout: root.verticalLayout,
+        scrollbarX: am5xy.XYChartScrollbar.new(root, {
+          orientation: 'horizontal'
+          })
+      })
+    );
+
+    chart.set('cursor', am5xy.XYCursor.new(root, {}));
+
+    let yAxis = chart.yAxes.push(
+      am5xy.ValueAxis.new(root, {
+        autoZoom: false,
+        renderer: am5xy.AxisRendererY.new(root, {})
+      })
+    );
+
+    let xAxis = chart.xAxes.push(
+      am5xy.DateAxis.new(root, {
+        baseInterval: { timeUnit: "hour", count: 1 },
+        renderer: am5xy.AxisRendererX.new(root, {})
+      })
+    );
+
+    let range = xAxis.createAxisRange(xAxis.makeDataItem({
+        value:    new Date().getTime() - 1000*60*3,
+        endValue: new Date().getTime() + 1000*60*3,
+    }));
+    range.get("grid").setAll({
+        stroke: am5.color('#0000ff')
+    });
+    range.get("axisFill").setAll({
+        fill:        am5.color('#85c7fc'),
+        fillOpacity: 1,
+        visible:     true,
+        tooltipText: formatInTimeZone(new Date(), 'Europe/Helsinki', 'yyyy-MM-dd HH:mm')
+    });
+
+    let series = chart.series.push( 
+      am5xy.ColumnSeries.new(root, { 
+        name: "Spot",
+        xAxis: xAxis, 
+        yAxis: yAxis, 
+        valueYField: "centsPerKWh", 
+        valueXField: "instant"
+      }) 
+    );
+    series.columns.template.setAll({
+      fillOpacity: 0.5,
+      cornerRadiusTL: 2,
+      cornerRadiusTR: 2,
+      tooltipText: "\ncents/kWh: {centsPerKWh}",
+      tooltipY: am5.percent(0)
+    });
+    series.columns.template.adapters.add('fill', (_,target) => target.dataItem.dataContext.centsPerKWh < 0 ? am5.color("#00ff00") : am5.color("#ff0000"));
+    series.columns.template.adapters.add('opacity', (_,target) => 0.3 + Math.abs(target.dataItem.dataContext.centsPerKWh / 40));
+    series.columns.template.adapters.add("tooltipText", (text, target) => {
+      let instant = target.dataItem.dataContext.instant;
+      return formatInTimeZone(new Date(instant), 'Europe/Helsinki', "yyyy-MM-dd HH:mm") + " - " + formatInTimeZone(addHours(new Date(instant), 1), 'Europe/Helsinki', "HH:mm") + text;
+    });
+
+    series.events.once("datavalidated", () => {
+      xAxis.zoomToDates(addHours(new Date(), -24), new Date(Math.max(...series.data.values.map(x => x.instant))));
+    });
 
     let init = () => {
-      getData("spot", (start, end) => document.getElementById('query').value.replace("{start}", start).replace("{end}", end), initGraph);
+      getData("spot", (start, end) => document.getElementById('query').value.replace("{start}", start).replace("{end}", end), data => {
+        series.data.setAll(data);
+      });
     };
 
     init();
