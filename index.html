@@ -95,17 +95,13 @@
       })
     );
 
-    let range = xAxis.createAxisRange(xAxis.makeDataItem({
+    xAxis.createAxisRange(xAxis.makeDataItem({
         value:    new Date().getTime() - 1000*60*3,
         endValue: new Date().getTime() + 1000*60*3,
-    }));
-    range.get("grid").setAll({
-        stroke: am5.color('#0000ff')
-    });
-    range.get("axisFill").setAll({
+    })).get("axisFill").setAll({
         fill:        am5.color('#85c7fc'),
         fillOpacity: 1,
-        visible:     true,
+        visible: true,
         tooltipText: formatInTimeZone(new Date(), 'Europe/Helsinki', 'yyyy-MM-dd HH:mm')
     });
 
@@ -139,6 +135,17 @@
     let init = () => {
       getData("spot", (start, end) => document.getElementById('query').value.replace("{start}", start).replace("{end}", end), data => {
         series.data.setAll(data);
+
+        eachDayOfInterval(interval).forEach(x => {
+          xAxis.createAxisRange(xAxis.makeDataItem({
+              value:    zonedTimeToUtc(new Date(formatInTimeZone(x, 'Europe/Helsinki', 'yyyy-MM-dd') + 'T22:00:00'), 'Europe/Helsinki').getTime(),
+              endValue: zonedTimeToUtc(new Date(formatInTimeZone(addHours(x, 24), 'Europe/Helsinki', 'yyyy-MM-dd') + 'T07:00:00'), 'Europe/Helsinki').getTime(),
+          })).get("axisFill").setAll({
+              fill:        am5.color('#cccccc'),
+              fillOpacity: 0.3,
+              visible: true
+          });
+        });
       });
     };
 
