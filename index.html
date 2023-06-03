@@ -1,7 +1,7 @@
 <html>
   <head>
     <meta property="og:charset" content="UTF-8"/>
-    <title>Spot-hinnat Suomessa</title>
+    <title>Spot prices in Finland</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <meta name="apple-mobile-web-app-title" content="Spot"/>
     <meta name="application-name" content="Spot"/>
@@ -11,147 +11,24 @@
     <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
     <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
     <script src="./dist/bundle.js"></script>
-    <style type="text/css">
-      body {
-        margin: 0;
-        padding-top: 10px;
-        overflow: hidden;
-      }
-      input {
-        width: 100%;
-        height: 22px;
-      }
-      .container {
-        position:relative;
-        height: 80vh;
-        height: calc(99dvh - 32px);
-      }
-    </style>
+    <link rel="stylesheet" href="style.css" />
   </head>
 <body>
-  <input id="query" value="select * from spot where instant between datetime('{start}') and datetime('{end}')" placeholder="your query here..." />
-  <div class="container">
+  <header>
+    <input id="query" value="SELECT * FROM spot WHERE instant BETWEEN datetime('{start}') AND datetime('{end}')" placeholder="your query here..." />
+    <a href="current.sh">Current price</a>
+    <a href="window.sh?hours=3">Next window</a>
+  </header>
+  <section class="container">
     <div id="chart"></div>
-  </div>
+  </section>
   <script type="text/javascript">
     if (window.location.search != '?sala1nenSalsasana') {
       document.body.innerHTML = '';
       throw new Error("authorization required");
     }
-
-    let readInterval = () => {
-      let initialInterval = window.location.hash ? window.location.hash.substring(1).split('/').map(x => new Date(x))
-                                                 : [new Date(new Date().getTime() - 1000*60*60*24*30), new Date(new Date().getTime() + 1000*60*60*24*2)];
-      return {start: initialInterval[0], end: initialInterval[1]};
-    };
-
-    let interval = readInterval();
-    let q = document.getElementById('query');
-    q.value = q.value.replace("{start}", interval.start.toISOString()).replace("{end}", interval.end.toISOString());
-    
-    let getData = function(name, queryF, cb) {
-      console.log("Querying " + name + " for " + JSON.stringify(interval));
-      let start = Math.floor(interval.start.getTime()/1000);
-      let end = Math.floor((interval.end.getTime()/1000));
-      spot(queryF(start, end))
-        .then(function(data) {
-          if (data == "") {
-            console.log("Got empty data for " + name);
-          } else {
-            console.log("Got " + data.length + " rows for " + name);
-          }
-          cb(data.map(x => ({...x, instant: zonedTimeToUtc(x.instant, 'Europe/Brussels').getTime()})));
-        });
-    };
-
-    let root = am5.Root.new("chart"); 
-    root.setThemes([
-      am5themes_Animated.new(root)
-    ]);
-
-    let chart = root.container.children.push( 
-      am5xy.XYChart.new(root, {
-        panX: true,
-        panY: false,
-        wheelY: "zoomX",
-        layout: root.verticalLayout,
-        scrollbarX: am5xy.XYChartScrollbar.new(root, {
-          orientation: 'horizontal'
-          })
-      })
-    );
-
-    let yAxis = chart.yAxes.push(
-      am5xy.ValueAxis.new(root, {
-        autoZoom: false,
-        renderer: am5xy.AxisRendererY.new(root, {})
-      })
-    );
-
-    let xAxis = chart.xAxes.push(
-      am5xy.DateAxis.new(root, {
-        baseInterval: { timeUnit: "hour", count: 1 },
-        renderer: am5xy.AxisRendererX.new(root, {})
-      })
-    );
-
-    xAxis.createAxisRange(xAxis.makeDataItem({
-        value:    new Date().getTime() - 1000*60*3,
-        endValue: new Date().getTime() + 1000*60*3,
-    })).get("axisFill").setAll({
-        fill:        am5.color('#85c7fc'),
-        fillOpacity: 1,
-        visible: true,
-        tooltipText: formatInTimeZone(new Date(), 'Europe/Helsinki', 'yyyy-MM-dd HH:mm')
-    });
-
-    let series = chart.series.push( 
-      am5xy.ColumnSeries.new(root, { 
-        name: "Spot",
-        xAxis: xAxis, 
-        yAxis: yAxis, 
-        valueYField: "centsPerKWh", 
-        valueXField: "instant"
-      }) 
-    );
-    series.columns.template.setAll({
-      fillOpacity: 0.5,
-      cornerRadiusTL: 2,
-      cornerRadiusTR: 2,
-      tooltipText: "\ncents/kWh: {centsPerKWh}",
-      tooltipY: am5.percent(0)
-    });
-    series.columns.template.adapters.add('fill', (_,target) => target.dataItem.dataContext.centsPerKWh < 0 ? am5.color("#00ff00") : am5.color("#ff0000"));
-    series.columns.template.adapters.add('opacity', (_,target) => 0.3 + Math.abs(target.dataItem.dataContext.centsPerKWh / 40));
-    series.columns.template.adapters.add("tooltipText", (text, target) => {
-      let instant = target.dataItem.dataContext.instant;
-      return formatInTimeZone(new Date(instant), 'Europe/Helsinki', "yyyy-MM-dd HH:mm") + " - " + formatInTimeZone(addHours(new Date(instant), 1), 'Europe/Helsinki', "HH:mm") + text;
-    });
-
-    series.events.once("datavalidated", () => {
-      xAxis.zoomToDates(addHours(new Date(), -24), new Date(Math.max(...series.data.values.map(x => x.instant))));
-    });
-
-    let init = () => {
-      getData("spot", (start, end) => document.getElementById('query').value.replace("{start}", start).replace("{end}", end), data => {
-        series.data.setAll(data);
-
-        eachDayOfInterval(interval).forEach(x => {
-          xAxis.createAxisRange(xAxis.makeDataItem({
-              value:    zonedTimeToUtc(new Date(formatInTimeZone(x, 'Europe/Helsinki', 'yyyy-MM-dd') + 'T22:00:00'), 'Europe/Helsinki').getTime(),
-              endValue: zonedTimeToUtc(new Date(formatInTimeZone(addHours(x, 24), 'Europe/Helsinki', 'yyyy-MM-dd') + 'T07:00:00'), 'Europe/Helsinki').getTime(),
-          })).get("axisFill").setAll({
-              fill:        am5.color('#cccccc'),
-              fillOpacity: 0.3,
-              visible: true
-          });
-        });
-      });
-    };
-
-    init();
-    q.addEventListener('change', init);
   </script>
+  <script type="text/javascript" src="script.js"></script>
 </body>
 </html>
 
