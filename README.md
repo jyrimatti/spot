@@ -1,13 +1,20 @@
-Pörssisähkön hinnat Suomessa
+Electricity Spot prices in Finland
 ----------------------------
 
-Yksinkertainen scriptikokoelma lataamaan pörssisähkön hintaa ja historiaa.
+Simple "service" to load and provide electricity spot prices in Finland.
 
-Sisältää niiden viemisen SQLite-tietokantaan saakka ja visualisoimisen pylväsgraafina, johon voi tehdä SQL-kyselyitä selaimesta (https://spot.lahteenmaki.net)
+See https://spot.lahteenmaki.net
 
-Jos haluat asentaa riippuvuudet jotenkin muuten kuin Nixillä, tipauta toki shebangit pois ja asenna tarvittavat riippuvuudet itse.
+Includes:
+- load and store prices in an Sqlite database
+- interactive bar chart
+- services to get the current price and cheapest windows
 
-Cronjobiin esimerkiksi
+If you want to handle dependencies yourself instead of with Nix, go ahead and exclude the shebang lines.
+
+Git pull to your server or for example to RaspberryPI if you want to minimize depending on the availability of Internet.
+
+Cron example:
 ```
 0 18 * * * myuser cd /var/www/spot && ./load.sh | ./parse.sh | ./insert.sh
 ```
