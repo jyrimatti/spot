@@ -20,7 +20,7 @@
         } else {
           console.log("Got " + data.length + " rows for " + name);
         }
-        cb(data.map(x => ({...x, instant: zonedTimeToUtc(x.instant, 'Europe/Brussels').getTime()}))
+        cb(data.map(x => ({...x, instant: x.instant*1000}))
                .sort((a,b) => a.instant - b.instant));
       });
   };

@@ -15,7 +15,7 @@
   </head>
 <body>
   <header>
-    <input id="query" value="SELECT * FROM spot WHERE instant BETWEEN datetime('{start}') AND datetime('{end}')" placeholder="your query here..." />
+    <input id="query" value="SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '{start}') AND strftime('%s', '{end}')" placeholder="your query here..." />
     <a href="current.action">Current price</a>
     <a href="window.action?hours=3">Next window</a>
   </header>
