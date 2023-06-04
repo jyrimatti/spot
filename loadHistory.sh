@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -I channel:nixos-22.11-small -i bash -p curl
+#! nix-shell --pure -I channel:nixos-22.11-small -i bash -p curl nix
 set -eu
 
 for year in '2023' '2022' '2021';
