@@ -80,7 +80,7 @@ fi
 
 export TZ=${var_tz:-'Europe/Helsinki'}
 
-offset=$(date +%z | sed -e 's/\([+-][0-9][0-9]\)\([0-9][0-9]\)/\1:\2/')
+offset=$(date +%:z)
 
 $(command -v sqlite3 || echo '/run/current-system/sw/bin/sqlite3') $scripts/spot.db "
     SELECT strftime('%Y-%m-%dT%H:%M:%S${offset}', instant, 'unixepoch', 'localtime')||','||total
