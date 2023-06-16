@@ -4,7 +4,7 @@ res=$(./current.json)
 first=$(echo "$res" | head -1)
 if [ "$first" = 'Content-Type: application/json' ]; then
     echo "$res" | head -3 | sed -e 's/application\/json/text\/csv/'
-    echo "$res" | tail -n+3 | jq -r 'map([.startTime, .centsPerKWh]) | .[] | @csv'
+    echo "$res" | tail -n+3 | jq -r '[.startTime, .centsPerKWh] | @csv'
 else
     echo "$res"
 fi
