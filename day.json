@@ -1,21 +1,8 @@
 #!/bin/sh
 
-scripts="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source util.sh
 
-err() {
-    if [ "$REQUEST_METHOD" != "" ];
-    then
-        echo 'Status: 400 Bad Request'
-        echo 'Content-type: text/plain'
-        echo ''
-    fi
-    echo "$1"
-}
-
-saveIFS=$IFS
-IFS='=&'
-parm=($QUERY_STRING)
-IFS=$saveIFS
+getQuery
 
 for ((i=0; i<${#parm[@]}; i+=2))
 do
@@ -49,7 +36,7 @@ export TZ=${var_tz:-'Europe/Helsinki'}
 
 offset=$(date +%:z)
 
-$(command -v sqlite3 || echo '/run/current-system/sw/bin/sqlite3') $scripts/spot.db '.mode json' "
+$(command -v sqlite3 || echo '/run/current-system/sw/bin/sqlite3') ./spot.db '.mode json' "
     SELECT strftime('%Y-%m-%dT%H:%M:%S${offset}', instant, 'unixepoch', 'localtime') startTime, centsPerKWh
     FROM spot
     WHERE strftime('%Y-%m-%d', instant, 'unixepoch', 'localtime') = '$day'

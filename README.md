@@ -27,13 +27,13 @@ Cron example:
 
 Nginx example:
 ```
-location ~ ^/.*[.]csv$ {
+location ~ ^/[^/]*[.]csv$ {
     root /var/spot;
     if (-f $request_filename) {
     fastcgi_pass unix:/run/fcgiwrap.sock;
     }
 }
-location ~ ^/.*[.]json$ {
+location ~ ^/[^/]*[.]json$ {
     root /var/spot;
     if (-f $request_filename) {
     fastcgi_pass unix:/run/fcgiwrap.sock;
