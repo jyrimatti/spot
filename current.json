@@ -2,7 +2,7 @@
 
 # Returns the current spot price. Parameter 'tz' is optional, defaults to Europe/Helsinki.
 
-source util.sh
+source ./util.sh
 
 getQuery
 
