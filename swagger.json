@@ -1,0 +1,207 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "API for electricity spot prices in Finland",
+        "version": "1.0.0"
+    },
+    "components": {
+        "schemas": {
+            "csv": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                    "anyOf": [{"type": "string", "format": "date-time"},
+                            {"type": "number", "format": "float"}]
+                }
+            },
+            "json": {
+                "type": "object",
+                "properties": {
+                    "startTime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Starting time for the price"
+                    },
+                    "centsPerKWh": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "The price"
+                    }
+                }
+            }
+        }
+    },
+    "paths": {
+        "/current.{format}": {
+            "get": {
+                "summary": "Returns the current spot price.",
+                "parameters": [{
+                    "name": "format",
+                    "in": "path",
+                    "required": true,
+                    "description": "output format",
+                    "schema": {
+                        "enum": ["json", "csv"]
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/json"
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/csv"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/window.{format}": {
+            "get": {
+                "summary": "Returns the cheapest windows of given hours ordered by average cost.",
+                "parameters": [{
+                    "name": "format",
+                    "in": "path",
+                    "required": true,
+                    "description": "output format",
+                    "schema": {
+                        "enum": ["json", "csv"]
+                    }
+                },{
+                    "name": "hours",
+                    "in": "query",
+                    "required": true,
+                    "description": "number of hours in the window",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1
+                    }
+                },{
+                    "name": "nightDelta",
+                    "in": "query",
+                    "description": "price difference of night hours",
+                    "schema": {
+                        "type": "integer"
+                    }
+                },{
+                    "name": "nightStart",
+                    "in": "query",
+                    "description": "hour of the beginning of night hours (default: 22)",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 23
+                    }
+                },{
+                    "name": "nightEnd",
+                    "in": "query",
+                    "description": "hour of the end of night hours (default: 7)",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 23
+                    }
+                },{
+                    "name": "from",
+                    "in": "query",
+                    "description": "earliest start time of the window (default: now)",
+                    "schema": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },{
+                    "name": "tz",
+                    "in": "query",
+                    "description": "output time zone (default: Europe/Helsinki)",
+                    "schema": {
+                        "type": "string"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/json"
+                                    }
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/csv"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/day.{format}": {
+            "get": {
+                "summary": "Returns the spot prices for the given day.",
+                "parameters": [{
+                    "name": "format",
+                    "in": "path",
+                    "required": true,
+                    "description": "output format",
+                    "schema": {
+                        "enum": ["json", "csv"]
+                    }
+                },{
+                    "name": "day",
+                    "in": "query",
+                    "required": true,
+                    "description": "date",
+                    "schema": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                },{
+                    "name": "tz",
+                    "in": "query",
+                    "description": "output time zone (default: Europe/Helsinki)",
+                    "schema": {
+                        "type": "string"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/json"
+                                    }
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/csv"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
