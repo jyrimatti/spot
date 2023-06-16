@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# Returns the current spot price. Parameter 'tz' is optional, defaults to Europe/Helsinki.
+
+scripts="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+saveIFS=$IFS
+IFS='=&'
+parm=($QUERY_STRING)
+IFS=$saveIFS
+
+for ((i=0; i<${#parm[@]}; i+=2))
+do
+    declare "var_${parm[i]}=${parm[i+1]}"
+done
+
+echo 'Content-Type: application/json'
+echo 'Cache-Control: max-age=60, must-revalidate'
+echo ''
+
+export TZ=${var_tz:-'Europe/Helsinki'}
+
+now=$(date +%s)
+offset=$(date +%:z)
+
+$(command -v sqlite3 || echo '/run/current-system/sw/bin/sqlite3') $scripts/spot.db '.mode json' "
+    SELECT strftime('%Y-%m-%dT%H:%M:%S${offset}', instant, 'unixepoch', 'localtime') startTime, centsPerKWh
+    FROM spot
+    WHERE instant <= '$now'
+    ORDER BY instant DESC
+    LIMIT 1" | sed 's/^\[//' | sed 's/\]$//'

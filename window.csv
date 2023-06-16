@@ -1,92 +1,10 @@
 #!/bin/sh
 
-scripts="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-err() {
-    if [ "$REQUEST_METHOD" != "" ];
-    then
-        echo 'Status: 400 Bad Request'
-        echo 'Content-type: text/plain'
-        echo ''
-    fi
-    echo "$1"
-}
-
-saveIFS=$IFS
-IFS='=&'
-parm=($QUERY_STRING)
-IFS=$saveIFS
-
-for ((i=0; i<${#parm[@]}; i+=2))
-do
-    declare "var_${parm[i]}=${parm[i+1]}"
-done
-
-if [ "$QUERY_STRING" = "" ];
-then
-    err "Returns the total cost for a window of given hours ordered by total cost."
-    echo "Parameters:"
-    echo "  hours:      number of hours in the window (required)"
-    echo "  nightDelta: price difference of night hours (default: 0)"
-    echo "  nightStart: hour of the beginning of night hours (default: 22)"
-    echo "  nightEnd:   hour of the end of night hours (default: 7)"
-    echo "  from:       earliest start time of the window (default: now)"
-    echo "  tz:         output time zone (default: Europe/Helsinki)"
-    echo "Usage:"
-    echo "  window.sh?hours=3"
-    echo "  window.sh?hours=3&nightDelta=-2.12&nightStart=23&nightEnd=6"
-    echo "  window.sh?hours=3&from=2023-06-03"
-    echo "  window.sh?hours=3&from=2023-06-03T12:00:00+03:00"
-    exit 1
+res=$(./window.json)
+first=$(echo "$res" | head -1)
+if [ "$first" = 'Content-Type: application/json' ]; then
+    echo "$res" | head -3 | sed -e 's/application\/json/text\/csv/'
+    echo "$res" | tail -n+3 | jq -r 'map([.startTime, .centsPerKWh]) | .[] | @csv'
+else
+    echo "$res"
 fi
-
-hours=${var_hours}
-if ! [[ "$hours" =~ ^[0-9]+$ ]]; then
-    err "error: Not a number: $var_hours"
-    exit 1
-fi
-
-from=${var_from:-$(date -u +%Y-%m-%d'T'%H:%M:%S'Z')}
-if ! [[ "$from" =~ ^[0-9]*-[0-9]*-[0-9]*(T[0-9]*(:[0-9]*(:[0-9]*)?)?[-+Z0-9:]*)?$ ]]; then
-    err "error: Not a date/time: $var_from"
-    exit 1
-fi
-
-nightBegin=${var_nightBegin:-22}
-if ! [[ "$nightBegin" =~ ^[0-9]+$ ]]; then
-    err "error: Not a number: $var_nightBegin"
-    exit 1
-fi
-
-nightEnd=${var_nightEnd:-7}
-if ! [[ "$nightEnd" =~ ^[0-9]+$ ]]; then
-    err "error: Not a number: $var_nightEnd"
-    exit 1
-fi
-
-nightDelta=${var_nightDelta:-0}
-if ! [[ "$nightDelta" =~ ^[-.0-9]+$ ]]; then
-    err "error: Not a number: $var_nightDelta"
-    exit 1
-fi
-
-
-
-if [ "$REQUEST_METHOD" != "" ];
-then
-    echo 'Content-type: text/csv'
-    echo ''
-fi
-
-export TZ=${var_tz:-'Europe/Helsinki'}
-
-offset=$(date +%:z)
-
-$(command -v sqlite3 || echo '/run/current-system/sw/bin/sqlite3') $scripts/spot.db "
-    SELECT strftime('%Y-%m-%dT%H:%M:%S${offset}', instant, 'unixepoch', 'localtime')||','||total
-    FROM (SELECT instant, SUM(CASE WHEN CAST(strftime('%H', instant, 'unixepoch') AS NUMERIC) BETWEEN $nightEnd AND $nightBegin THEN centsPerKWh ELSE centsPerKWh+($nightDelta) END) OVER win total, COUNT(*) OVER win rows
-        FROM spot
-        WHERE instant >= strftime('%s', '$from')
-        WINDOW win AS (ORDER BY instant ROWS between CURRENT ROW AND $hours-1 FOLLOWING))
-    WHERE rows = $hours
-    ORDER BY total"

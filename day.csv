@@ -1,6 +1,6 @@
 #!/bin/sh
 
-res=$(./current.json)
+res=$(./day.json)
 first=$(echo "$res" | head -1)
 if [ "$first" = 'Content-Type: application/json' ]; then
     echo "$res" | head -3 | sed -e 's/application\/json/text\/csv/'
