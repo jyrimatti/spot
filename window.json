@@ -63,7 +63,7 @@ export TZ=${var_tz:-'Europe/Helsinki'}
 offset=$(date +%:z)
 
 $(command -v sqlite3 || echo '/run/current-system/sw/bin/sqlite3') ./spot.db '.mode json' "
-    SELECT strftime('%Y-%m-%dT%H:%M:%S${offset}', instant, 'unixepoch', 'localtime') startTime, centsPerKWh
+    SELECT strftime('%Y-%m-%dT%H:%M:%S${offset}', instant, 'unixepoch', 'localtime') startTime, average centsPerKWh
     FROM (SELECT instant, centsPerKWh, AVG(CASE WHEN CAST(strftime('%H', instant, 'unixepoch') AS NUMERIC) BETWEEN $nightEnd AND $nightBegin THEN centsPerKWh ELSE centsPerKWh+($nightDelta) END) OVER win average, COUNT(*) OVER win rows
         FROM spot
         WHERE instant >= strftime('%s', '$from')
