@@ -2,7 +2,7 @@
 #! nix-shell --pure -I channel:nixos-22.11-small -i bash -p jq sqlite
 set -eu
 
-# The current data is always in CET...
+# The data is always in CET...
 export TZ=Europe/Brussels
 
 jq -r 'map([.instant, .centsPerKWh]) | .[] | @csv' |

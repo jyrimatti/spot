@@ -9,7 +9,7 @@ do
     for day in '01' '06' '11' '16' '21' '26';
     do
         echo "Loading $year-$month-$day..."
-        ./load.sh "$year" "$month" "$day" | ./parse.sh | ./insert.sh
+        ./np_load.sh "$year" "$month" "$day" | ./np_parse.sh | ./np_insert.sh
     done
   done
 done
