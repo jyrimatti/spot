@@ -76,7 +76,7 @@
                         "enum": ["json", "csv"]
                     }
                 },{
-                    "name": "hours",
+                    "name": "window",
                     "in": "query",
                     "required": true,
                     "description": "number of hours in the window",
