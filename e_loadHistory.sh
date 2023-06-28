@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell --pure --keep SECURITY_TOKEN -I channel:nixos-22.11-small -i bash -p curl nix
+#! nix-shell --pure --keep SECURITY_TOKEN -I channel:nixos-23.05-small -i bash -p curl nix
 set -eu
 
 cat DAY_AHEAD_PRICES_201501010000-201601010000.xml | ./e_parse.sh | ./e_insert.sh

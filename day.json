@@ -1,43 +1,12 @@
-#!/bin/sh
+#! /usr/bin/env nix-shell
+#! nix-shell -i bash -I channel:nixos-23.05-small -p bash
+set -eu
 
 source ./util.sh
 
-getQuery
-
-for ((i=0; i<${#parm[@]}; i+=2))
-do
-    declare "var_${parm[i]}=${parm[i+1]}"
-done
-
-if [ "$QUERY_STRING" = "" ];
-then
-    err "Returns the spot prices for a given day."
-    echo "Parameters:"
-    echo "  day:        yyyy-MM-dd (required)"
-    echo "  tz:         output time zone (default: Europe/Helsinki)"
-    echo "Usage:"
-    echo "  day.json?day=2023-02-14"
-    exit 1
-fi
-
-day=${var_day}
-if ! [[ "$day" =~ ^[0-9]*-[0-9]*-[0-9]* ]]; then
-    err "error: Not a date: $var_day"
-    exit 1
-fi
-
-
+res=$(./day.sh "$(getParameters)") || (echo "$res" && exit 1)
 
 echo 'Content-Type: application/json'
 echo 'Cache-Control: max-age=60, must-revalidate'
 echo ''
-
-export TZ=${var_tz:-'Europe/Helsinki'}
-
-offset=$(date +%:z)
-
-$(command -v sqlite3 || echo '/run/current-system/sw/bin/sqlite3') ./spot.db '.mode json' "
-    SELECT strftime('%Y-%m-%dT%H:%M:%S${offset}', instant, 'unixepoch', 'localtime') startTime, centsPerKWh
-    FROM spot
-    WHERE strftime('%Y-%m-%d', instant, 'unixepoch', 'localtime') = '$day'
-    ORDER BY instant"
+echo "$res"

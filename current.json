@@ -1,23 +1,12 @@
-#!/bin/sh
-
-# Returns the current spot price. Parameter 'tz' is optional, defaults to Europe/Helsinki.
+#! /usr/bin/env nix-shell
+#! nix-shell -i bash -I channel:nixos-23.05-small -p bash
+set -eu
 
 source ./util.sh
 
-getQuery
+res=$(./current.sh "$(getParameters)") || (echo "$res" && exit 1)
 
 echo 'Content-Type: application/json'
 echo 'Cache-Control: max-age=60, must-revalidate'
 echo ''
-
-export TZ=${var_tz:-'Europe/Helsinki'}
-
-now=$(date +%s)
-offset=$(date +%:z)
-
-$(command -v sqlite3 || echo '/run/current-system/sw/bin/sqlite3') ./spot.db '.mode json' "
-    SELECT strftime('%Y-%m-%dT%H:%M:%S${offset}', instant, 'unixepoch', 'localtime') startTime, centsPerKWh
-    FROM spot
-    WHERE instant <= '$now'
-    ORDER BY instant DESC
-    LIMIT 1" | sed 's/^\[//' | sed 's/\]$//'
+echo "$res"

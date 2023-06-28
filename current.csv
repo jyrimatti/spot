@@ -1,10 +1,12 @@
-#!/bin/sh
+#! /usr/bin/env nix-shell
+#! nix-shell -i bash -I channel:nixos-23.05-small -p jq
+set -eu
 
-res=$(./current.json)
-first=$(echo "$res" | head -1)
-if [ "$first" = 'Content-Type: application/json' ]; then
-    echo "$res" | head -3 | sed -e 's/application\/json/text\/csv/'
-    echo "$res" | tail -n+3 | $(command -v jq || echo '/run/current-system/sw/bin/jq') -r '[.startTime, .centsPerKWh] | @csv'
-else
-    echo "$res"
-fi
+source ./util.sh
+
+res=$(./current.sh "$(getParameters)") || (echo "$res" && exit 1)
+
+echo 'Content-Type: text/csv'
+echo 'Cache-Control: max-age=60, must-revalidate'
+echo ''
+echo "$res" | jq -r '[.startTime, .centsPerKWh] | @csv'
