@@ -17,7 +17,7 @@ async function load(db: string, query: string) {
         from: "inline",
         config: {
           serverMode: "full",
-          url: "/spot.db",
+          url: db,
           requestChunkSize: 4096,
         },
       },
@@ -30,7 +30,7 @@ async function load(db: string, query: string) {
   return result;
 }
 
-(window as any).spot = (query: string) => load('spot', query);
+(window as any).load = load;
 (window as any).zonedTimeToUtc = zonedTimeToUtc;
 (window as any).formatInTimeZone = formatInTimeZone;
 (window as any).addHours = addHours;

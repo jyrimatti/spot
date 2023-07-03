@@ -13,7 +13,7 @@
     console.log("Querying " + name + " for " + JSON.stringify(interval));
     let start = Math.floor(interval.start.getTime()/1000);
     let end = Math.floor((interval.end.getTime()/1000));
-    spot(queryF(start, end))
+    load('/spot.db', queryF(start, end))
       .then(function(data) {
         if (data == "") {
           console.log("Got empty data for " + name);

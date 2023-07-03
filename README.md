@@ -46,6 +46,11 @@ Create database
 
 [Setup Homebridge](#homebridge-configuration)
 
+Build web site
+```
+cd web && ./installjs.sh && ./package.sh
+```
+
 Setup [Nginx](#nginx-for-production-use) or [another CGI server](#python-cgi-server-for-testing)
 
 ~~profit!~~

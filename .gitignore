@@ -1,6 +1,5 @@
 spot.db
 dist
-package.json
-package-lock.json
 DAY_AHEAD*.xml
 .spot-token
+web/tsconfig.json
