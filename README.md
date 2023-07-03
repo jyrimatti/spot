@@ -8,9 +8,7 @@ See https://spot.lahteenmaki.net
 Functionality
 =============
 
-- scripts to load data from
-    - [Entsoe Transparency Platform](https://transparency.entsoe.eu/content/static_content/Static%20content/web%20api/Guide.html)
-    - Nordpool internal API (don't use this, it's not a published API)
+- scripts to load data from [Entsoe Transparency Platform](https://transparency.entsoe.eu/content/static_content/Static%20content/web%20api/Guide.html)
 - store prices in a Sqlite database
 - interactive bar chart
 - OpenAPI spec with interactive Swagger-UI
@@ -22,12 +20,36 @@ Git pull to your server or for example to RaspberryPI if you want to minimize de
 
 Setup
 =====
-- git clone this repo
-- store your Entsoe credentials to `/home/myuser/.entsoe_token.txt`
-- create database: `./createdb.sh`
-- setup cronjobs
-- setup Nginx or another CGI server
-- ~~profit!~~
+
+Assuming user home directory
+```
+cd ~
+```
+
+Clone this repo
+```
+git clone https://github.com/jyrimatti/spot.git
+```
+
+Store Entsoe credentials
+```
+echo '<my entsoe token>' > .spot-token
+chmod go-rwx .spot*
+```
+
+Create database
+```
+./spot_createdb.sh
+```
+
+[Setup cronjobs](#cron)
+
+[Setup Homebridge](#homebridge-configuration)
+
+Setup [Nginx](#nginx-for-production-use) or [another CGI server](#python-cgi-server-for-testing)
+
+~~profit!~~
+
 Dependencies
 ============
 
@@ -37,7 +59,7 @@ However, constantly running nix-shell has a lot of overhead, so you might want t
 
 For example, installing with Nix:
 ```
-> nix-env -f https://github.com/NixOS/nixpkgs/archive/nixos-23.05-small.tar.gz -i sqlite websocat curl jq yq htmlq getoptions bc
+> nix-env -f https://github.com/NixOS/nixpkgs/archive/nixos-23.05-small.tar.gz -i curl sqlite jq yq getoptions
 ```
 
 Then create somewhere a symlink named `nix-shell` pointing to just the regular shell:
@@ -55,7 +77,7 @@ Cron
 ====
 
 ```
-0 * * * * myuser export PATH=/var/nix-override:$PATH; cd /var/spot && SECURITY_TOKEN=$(echo /home/myuser/.entsoe_token.txt) ./e_load.sh | ./e_parse.sh | ./e_insert.sh
+0 * * * * pi export PATH=~/.local/nix-override:$PATH; cd ~/spot; ./spot_collect2db.sh
 ```
 
 Python CGI server (for testing)
@@ -72,7 +94,7 @@ Nginx (for production use)
 ```
 http {
     # set PATH to wherever global binaries are installed, and override nix-shell:
-    fastcgi_param PATH /var/nix-override:/run/current-system/sw/bin/;
+    fastcgi_param PATH /home/pi/.local/nix-override:/run/current-system/sw/bin/;
     
     # allow caching of fastcgi responses (based on Cache-Control)
     fastcgi_cache_path /var/cache/nginx/fastcgi1 keys_zone=fastcgi1:50m max_size=400m inactive=7d;
@@ -82,7 +104,7 @@ http {
     server {
         # allow .csv and .json as fastcgi endpoints:
         location ~ ^/[^/]*[.]csv$ {
-            root /var/spot;
+            root /home/pi/spot;
             fastcgi_cache fastcgi1;
             add_header X-Cache-status $upstream_cache_status;
             if (-f $request_filename) {
@@ -90,7 +112,7 @@ http {
             }
         }
         location ~ ^/[^/]*[.]json$ {
-            root /var/spot;
+            root /home/pi/spot;
             fastcgi_cache fastcgi2;
             add_header X-Cache-status $upstream_cache_status;
             if (-f $request_filename) {
@@ -100,13 +122,54 @@ http {
 
         # publish sqlite database for the browser:
         location /spot.db {
-            root /var/spot;
+            root /home/pi/spot;
             gzip off;
         }
 
         location / {
-            root /var/spot;
+            root /home/pi/spot;
         }
     }
+}
+```
+
+Homebridge configuration
+========================
+
+You can use these scripts with Homebridge to show values with Apple HomeKit. Example configuration:
+```
+{
+    "bridge": {
+        "name": "Homebridge",
+        "username": "11:22:33:44:55:66",
+        "port": 51826,
+        "pin": "123-45-678"
+    },
+    "description": "",
+    "accessories": [],
+    "platforms": [
+    {
+         "platform": "Cmd4",
+         "name": "Cmd4",
+         "outputConstants": false,
+         "_bridge": {
+            "username": "AA:AA:AA:AA:AA:27",
+            "port": 51827
+         },
+         "interval": 600,
+         "timeout": 10000,
+         "accessories" :
+         [
+            {
+               "type":                    "TemperatureSensor",
+               "name":                    "Spot",
+               "displayName":             "Spot",
+               "statusActive":            "TRUE",
+               "currentTemperature":      66.6,
+               "state_cmd":               ". /etc/profile; /home/pi/spot/current.sh | sed 's/.*,//g'"
+            }
+        ]
+    }
+    ]
 }
 ```
