@@ -136,40 +136,6 @@ http {
 Homebridge configuration
 ========================
 
-You can use these scripts with Homebridge to show values with Apple HomeKit. Example configuration:
-```
-{
-    "bridge": {
-        "name": "Homebridge",
-        "username": "11:22:33:44:55:66",
-        "port": 51826,
-        "pin": "123-45-678"
-    },
-    "description": "",
-    "accessories": [],
-    "platforms": [
-    {
-         "platform": "Cmd4",
-         "name": "Cmd4",
-         "outputConstants": false,
-         "_bridge": {
-            "username": "AA:AA:AA:AA:AA:27",
-            "port": 51827
-         },
-         "interval": 600,
-         "timeout": 10000,
-         "accessories" :
-         [
-            {
-               "type":                    "TemperatureSensor",
-               "name":                    "Spot",
-               "displayName":             "Spot",
-               "statusActive":            "TRUE",
-               "currentTemperature":      66.6,
-               "state_cmd":               ". /etc/profile; /home/pi/spot/current.sh | sed 's/.*,//g'"
-            }
-        ]
-    }
-    ]
-}
-```
+You can use these scripts with Homebridge to show and modify values with Apple HomeKit.
+
+See [example configuration](homebridge/config.json).
