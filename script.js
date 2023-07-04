@@ -68,8 +68,8 @@
   });
 
   xAxis.createAxisRange(xAxis.makeDataItem({
-      value:    new Date().getTime() - 1000*60*3,
-      endValue: new Date().getTime() + 1000*60*3,
+      value:    new Date().getTime() - 1000*60*5,
+      endValue: new Date().getTime() + 1000*60*5,
   })).get("axisFill").setAll({
       fill:        am5.color('#85c7fc'),
       fillOpacity: 1,
