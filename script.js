@@ -68,11 +68,13 @@
   });
 
   xAxis.createAxisRange(xAxis.makeDataItem({
-      value:    new Date().getTime() - 1000*60*5,
-      endValue: new Date().getTime() + 1000*60*5,
+      value:    new Date().getTime() - 1000*60*1,
+      endValue: new Date().getTime() + 1000*60*1,
   })).get("axisFill").setAll({
       fill:        am5.color('#85c7fc'),
+      stroke:      am5.color('#85c7fc'),
       fillOpacity: 1,
+      strokeWidth: 5,
       visible: true,
       tooltipText: formatInTimeZone(new Date(), 'Europe/Helsinki', 'yyyy-MM-dd HH:mm')
   });
@@ -123,13 +125,36 @@
     getData("spot", (start, end) => document.getElementById('query').value.replace("{start}", start).replace("{end}", end), data => {
       series.data.setAll(data);
 
+      eachWeekendOfInterval(interval).forEach(x => {
+        xAxis.createAxisRange(xAxis.makeDataItem({
+            value:    x.getTime(),
+            endValue: addHours(x, 24).getTime(),
+        })).get("axisFill").setAll({
+            visible: true,
+            fillOpacity: 0.5,
+            fillGradient: am5.LinearGradient.new(root, {
+              stops: [{
+                color: am5.color("#000000")
+              }, {
+                color: am5.color("#ffffff"),
+                offset: 0.15
+              }, {
+                color: am5.color("#ffffff"),
+                offset: 0.85
+              }, {
+                color: am5.color("#000000")
+              }]
+            })
+        });
+      });
+
       eachDayOfInterval(interval).forEach(x => {
         xAxis.createAxisRange(xAxis.makeDataItem({
             value:    zonedTimeToUtc(new Date(formatInTimeZone(x, 'Europe/Helsinki', 'yyyy-MM-dd') + 'T22:00:00'), 'Europe/Helsinki').getTime(),
             endValue: zonedTimeToUtc(new Date(formatInTimeZone(addHours(x, 24), 'Europe/Helsinki', 'yyyy-MM-dd') + 'T07:00:00'), 'Europe/Helsinki').getTime(),
         })).get("axisFill").setAll({
-            fill:        am5.color('#cccccc'),
-            fillOpacity: 0.3,
+            fill:        am5.color('#0000ff'),
+            fillOpacity: 0.05,
             visible: true
         });
       });
