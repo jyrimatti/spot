@@ -9,12 +9,10 @@
   let q = document.getElementById('query');
   q.value = q.value.replace("{start}", interval.start.toISOString()).replace("{end}", interval.end.toISOString());
   
-  let getData = function(name, queryF, cb) {
+  let getData = (name, queryF, cb) => {
     console.log("Querying " + name + " for " + JSON.stringify(interval));
-    let start = Math.floor(interval.start.getTime()/1000);
-    let end = Math.floor((interval.end.getTime()/1000));
-    load('/spot.db', queryF(start, end))
-      .then(function(data) {
+    load('/spot.db', queryF())
+      .then(data => {
         if (data == "") {
           console.log("Got empty data for " + name);
         } else {
@@ -122,8 +120,9 @@
   });
 
   let init = () => {
-    getData("spot", (start, end) => document.getElementById('query').value.replace("{start}", start).replace("{end}", end), data => {
+    getData("spot", () => q.value, data => {
       series.data.setAll(data);
+      let interval = {start: Math.min(...data.map(x => x.instant)), end: Math.max(...data.map(x => x.instant))};
 
       eachWeekendOfInterval(interval).forEach(x => {
         xAxis.createAxisRange(xAxis.makeDataItem({
@@ -137,10 +136,10 @@
                 color: am5.color("#000000")
               }, {
                 color: am5.color("#ffffff"),
-                offset: 0.15
+                offset: 0.10
               }, {
                 color: am5.color("#ffffff"),
-                offset: 0.85
+                offset: 0.90
               }, {
                 color: am5.color("#000000")
               }]
