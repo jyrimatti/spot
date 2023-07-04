@@ -4,7 +4,7 @@ set -eu
 
 source ./util.sh
 
-res=$(./current.sh "$(getParameters)") || (echo "$res" && exit 1)
+res=$(./current.sh "$(getParameters)" 2>&1) || (echo -e "Status: 400\n\n$res" && exit 1)
 
 echo 'Content-Type: text/csv'
 echo 'Cache-Control: max-age=60, must-revalidate'
