@@ -1,0 +1,20 @@
+[[services]]
+type = "AccessoryInformation"
+
+[services.characteristics]
+Identify = {} # leave property completely out 'cos otherwise Homekit won't accept
+Manufacturer = "Jyri-Matti Lähteenmäki"
+Model = "Spot"
+Name = "Spot"
+SerialNumber = "AA:AA:AA:AA:AA:DD"
+FirmwareRevision = "100.1.1"
+
+
+[[services]]
+type = "TemperatureSensor"
+cmd = "cd spot; ./cmd/currentPrice.sh"
+polling = 60
+
+[services.characteristics]
+CurrentTemperature = 0
+Name = "Sähkön Spot-hinta"
