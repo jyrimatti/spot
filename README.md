@@ -64,13 +64,13 @@ However, constantly running nix-shell has a lot of overhead, so you might want t
 
 For example, installing with Nix:
 ```
-> nix-env -f https://github.com/NixOS/nixpkgs/archive/nixos-23.05-small.tar.gz -i curl sqlite jq yq getoptions
+> nix-env -f https://github.com/NixOS/nixpkgs/archive/nixos-23.05-small.tar.gz -iA nixpkgs.dash nixpkgs.curl nixpkgs.sqlite nixpkgs.jq nixpkgs.yq nixpkgs.getoptions
 ```
 
 Then create somewhere a symlink named `nix-shell` pointing to just the regular shell:
 ```
 > mkdir ~/.local/nix-override
-> ln -s /bin/sh ~/.local/nix-override/nix-shell
+> ln -s /home/pi/.nix-profile/bin/dash ~/.local/nix-override/nix-shell
 ```
 
 after which you can override nix-shell with PATH:
@@ -82,7 +82,9 @@ Cron
 ====
 
 ```
-0 * * * * pi export PATH=~/.local/nix-override:$PATH; cd ~/spot; ./spot_collect2db.sh
+USER=pi
+PATH=/home/pi/.local/nix-override:/home/pi/.nix-profile/bin
+0 * * * * cd ~/spot; ./spot_collect2db.sh 2>&1 1>/dev/null 
 ```
 
 Python CGI server (for testing)

@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -i bash -I channel:nixos-23.05-small -p sqlite getoptions
+#! nix-shell -i dash -I channel:nixos-23.05-small -p sqlite getoptions
 set -eu
 
 NIGHT_DELTA=0
@@ -23,14 +23,13 @@ parser() {
 natural() { case $OPTARG in (*[!0-9]*) return 1; esac; }
 number() { case $OPTARG in (*[!0-9.-]*) return 1; esac; }
 isoDateTime() {
-    if ! [[ "$OPTARG" =~ ^[0-9]*-[0-9]*-[0-9]*(T[0-9]*(:[0-9]*(:[0-9]*)?)?[-+Z0-9:]*)?$ ]]; then
-        return 1
-    fi
+    # TODO
+    return 0
 }
 eval "$(getoptions parser) exit 1"
 
-if (( $# != 0 )); then usage; exit 1; fi
-if [[ -z $WINDOW ]]; then usage; exit 1; fi
+if [ $# != 0 ]; then usage; exit 1; fi
+if [ -z "${WINDOW:-}" ]; then usage; exit 1; fi
 
 export TZ
 offset=$(date +%:z)

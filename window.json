@@ -1,8 +1,8 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -i bash -I channel:nixos-23.05-small -p bash
+#! nix-shell -i dash -I channel:nixos-23.05-small -p dash
 set -eu
 
-source ./util.sh
+. ./util.sh
 
 res=$(./window.sh "$(getParameters)" 2>&1) || (echo -e "Status: 400\n\n$res" && exit 1)
 

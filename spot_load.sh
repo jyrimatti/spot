@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell --pure --keep ENTSOE_TOKEN -I channel:nixos-23.05-small -i bash -p curl cacert yq
+#! nix-shell --pure --keep ENTSOE_TOKEN -I channel:nixos-23.05-small -i dash -p coreutils curl cacert yq
 
 if [ $# -eq 0 ];
 then 

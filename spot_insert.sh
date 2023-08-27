@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell --pure -I channel:nixos-23.05-small -i bash -p jq sqlite
+#! nix-shell --pure -I channel:nixos-23.05-small -i dash -p jq sqlite gnused
 set -eu
 
 # The data is always in UTC
