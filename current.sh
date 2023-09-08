@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -i dash -I channel:nixos-23.05-small -p sqlite getoptions
+#! nix-shell -i dash -I channel:nixos-23.05-small -p sqlite getoptions bc
 set -eu
 
 TZ='Europe/Helsinki'
