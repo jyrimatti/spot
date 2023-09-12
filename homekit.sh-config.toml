@@ -18,4 +18,3 @@ type = "TemperatureSensor"
 Name = "Sähkön Spot-hinta"
 [services.characteristics.CurrentTemperature]
 cmd = "cd spot; ./cmd/currentPrice.sh"
-value = 0
