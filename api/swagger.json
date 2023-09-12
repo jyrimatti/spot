@@ -44,6 +44,24 @@
                     "schema": {
                         "enum": ["json", "csv"]
                     }
+                },
+                {
+                    "name": "tz",
+                    "in": "query",
+                    "description": "output time zone (default: Europe/Helsinki)",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "tax",
+                    "in": "query",
+                    "description": "included tax percent (0-100) (default: 0)",
+                    "schema": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                    }
                 }],
                 "responses": {
                     "200": {
@@ -124,6 +142,16 @@
                     "schema": {
                         "type": "string"
                     }
+                },
+                {
+                    "name": "tax",
+                    "in": "query",
+                    "description": "included tax percent (0-100) (default: 0)",
+                    "schema": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                    }
                 }],
                 "responses": {
                     "200": {
@@ -176,6 +204,16 @@
                     "description": "output time zone (default: Europe/Helsinki)",
                     "schema": {
                         "type": "string"
+                    }
+                },
+                {
+                    "name": "tax",
+                    "in": "query",
+                    "description": "included tax percent (0-100) (default: 0)",
+                    "schema": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
                     }
                 }],
                 "responses": {

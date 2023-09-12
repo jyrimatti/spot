@@ -17,5 +17,5 @@ read_querystring() {
 }
 
 getParameters() {
-    urldecode $QUERY_STRING | sed 's/&/ --/g' | sed 's/^/--/'
+    urldecode "$QUERY_STRING" | sed 's/&/ --/g' | sed 's/^/--/'
 }
