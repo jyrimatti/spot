@@ -12,9 +12,11 @@ FirmwareRevision = "100.1.1"
 
 [[services]]
 type = "TemperatureSensor"
-#polling = 60
 
 [services.characteristics]
 Name = "Sähkön Spot-hinta"
 [services.characteristics.CurrentTemperature]
+minValue = -50
+minStep = 0.001
+polling = 60
 cmd = "cd spot; ./cmd/currentPrice.sh"
