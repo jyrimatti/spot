@@ -62,19 +62,9 @@
     })
   );
   xAxis.get("renderer").labels.template.setAll({
-    fontSize: "0.75em"
-  });
-
-  xAxis.createAxisRange(xAxis.makeDataItem({
-      value:    new Date().getTime() - 1000*60*1,
-      endValue: new Date().getTime() + 1000*60*1,
-  })).get("axisFill").setAll({
-      fill:        am5.color('#85c7fc'),
-      stroke:      am5.color('#85c7fc'),
-      fillOpacity: 1,
-      strokeWidth: 5,
-      visible: true,
-      tooltipText: formatInTimeZone(new Date(), 'Europe/Helsinki', 'yyyy-MM-dd HH:mm')
+    fontSize: "0.75em",
+    location: 0,
+    multiLocation: 0
   });
 
   let series = chart.series.push( 
@@ -119,6 +109,27 @@
     xAxis.zoomToDates(addHours(new Date(), -24), new Date(Math.max(...series.data.values.map(x => x.instant))));
   });
 
+  let axisFill = xAxis.createAxisRange(xAxis.makeDataItem({
+    value:    new Date().getTime() - 1000*60*1,
+    endValue: new Date().getTime() + 1000*60*1,
+  })).get("axisFill");
+  axisFill.setAll({
+      fill:        am5.color('#85c7fc'),
+      stroke:      am5.color('#85c7fc'),
+      fillOpacity: 1,
+      strokeWidth: 5,
+      visible: true,
+      tooltip: am5.Tooltip.new(root, {}),
+      tooltipY: 0,
+      showTooltipOn: "always"
+  });
+  axisFill.get("tooltip").adapters.add("bounds", () => chart.plotContainer.globalBounds());
+  axisFill.adapters.add("tooltipText", (text, target) => {
+    let instant = target.dataItem.get('value');
+    return formatInTimeZone(new Date(instant), 'Europe/Helsinki', "yyyy-MM-dd HH:mm") +
+      (series.data.values.length == 0 ? '' : "\n" + series.data.values.findLast(x => x.instant <= instant).centsPerKWh + " cents/kWh");
+  });
+
   let init = () => {
     getData("spot", () => q.value, data => {
       series.data.setAll(data);
@@ -136,10 +147,10 @@
                 color: am5.color("#000000")
               }, {
                 color: am5.color("#ffffff"),
-                offset: 0.10
+                offset: 0.30
               }, {
                 color: am5.color("#ffffff"),
-                offset: 0.90
+                offset: 0.95
               }, {
                 color: am5.color("#000000")
               }]
