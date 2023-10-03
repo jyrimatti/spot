@@ -79,7 +79,7 @@
       stacked: true,
       calculateTotals: true,
       maskBullets: false,
-      minBulletDistance: 30
+      minBulletDistance: 20
     });
     ret.columns.template.setAll({
       fillOpacity: 0.5,
@@ -110,7 +110,7 @@
       locationY: 1,
       sprite: am5.Label.new(root, {
         text: "{valueYSum}",
-        scale: 0.7,
+        scale: 0.6,
         centerY: am5.p100,
         centerX: am5.p50,
         populateText: true
