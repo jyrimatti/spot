@@ -147,7 +147,7 @@
     let instant = target.dataItem.get('value');
     let price = () => series.data.values.findLast(x => x.instant <= instant).centsPerKWh;
     return formatInTimeZone(new Date(instant), 'Europe/Helsinki', "yyyy-MM-dd HH:mm") +
-      (series.data.values.length == 0 ? '' : "\n" + (price() > 0 ? price() * 1.24 : price()) + " cents/kwh with tax");
+      (series.data.values.length == 0 ? '' : "\n" + (price() > 0 ? (price()*1.24).toFixed(3) : price()) + " cents/kwh with tax");
   });
 
   let init = () => {
