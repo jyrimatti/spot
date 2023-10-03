@@ -118,6 +118,7 @@
     });
   });
   
+  series.set("fill", am5.color("#ff8282"));
   series.set("heatRules", [{
     target: series.columns.template,
     dataField: "valueY",
