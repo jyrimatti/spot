@@ -79,7 +79,7 @@
       stacked: true,
       calculateTotals: true,
       maskBullets: false,
-      minBulletDistance: 20
+      minBulletDistance: 25
     });
     ret.columns.template.setAll({
       fillOpacity: 0.5,
@@ -140,10 +140,18 @@
   }));
   legend.data.setAll([series, taxSeries]);
 
-  let axisFill = xAxis.createAxisRange(xAxis.makeDataItem({
+  let range = xAxis.makeDataItem({
     value:    new Date().getTime() - 1000*60*1,
-    endValue: new Date().getTime() + 1000*60*1,
-  })).get("axisFill");
+    endValue: new Date().getTime() + 1000*60*1
+  });
+  setInterval(() => {
+    let now = new Date();
+    range.setAll({
+      value:    now.getTime() - 1000*60*1,
+      endValue: now.getTime() + 1000*60*1
+    });
+  }, 60000);
+  let axisFill = xAxis.createAxisRange(range).get("axisFill");
   axisFill.setAll({
       fill:        am5.color('#85c7fc'),
       stroke:      am5.color('#85c7fc'),
