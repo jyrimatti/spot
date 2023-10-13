@@ -27,6 +27,7 @@
   root.setThemes([
     am5themes_Animated.new(root)
   ]);
+  root.numberFormatter.set("numberFormat", "#.00");
 
   let chart = root.container.children.push( 
     am5xy.XYChart.new(root, {
@@ -44,6 +45,7 @@
   let yAxis = chart.yAxes.push(
     am5xy.ValueAxis.new(root, {
       autoZoom: false,
+      calculateTotals: true,
       renderer: am5xy.AxisRendererY.new(root, {
         minGridDistance: 20
       })
@@ -62,42 +64,61 @@
     })
   );
   xAxis.get("renderer").labels.template.setAll({
-    fontSize: "0.75em"
+    fontSize: "0.75em",
+    location: 0,
+    multiLocation: 0
   });
 
-  xAxis.createAxisRange(xAxis.makeDataItem({
-      value:    new Date().getTime() - 1000*60*1,
-      endValue: new Date().getTime() + 1000*60*1,
-  })).get("axisFill").setAll({
-      fill:        am5.color('#85c7fc'),
-      stroke:      am5.color('#85c7fc'),
-      fillOpacity: 1,
-      strokeWidth: 5,
-      visible: true,
-      tooltipText: formatInTimeZone(new Date(), 'Europe/Helsinki', 'yyyy-MM-dd HH:mm')
-  });
-
-  let series = chart.series.push( 
-    am5xy.ColumnSeries.new(root, { 
-      name: "Spot",
-      xAxis: xAxis, 
-      yAxis: yAxis, 
+  let mkSeries = (name) => {
+    let ret = am5xy.ColumnSeries.new(root, { 
+      name: name,
+      xAxis: xAxis,
+      yAxis: yAxis,
       valueYField: "centsPerKWh", 
-      valueXField: "instant"
-    }) 
-  );
-  series.columns.template.setAll({
-    fillOpacity: 0.5,
-    cornerRadiusTL: 2,
-    cornerRadiusTR: 2,
-    tooltipText: "\ncents/kWh: {centsPerKWh}",
-    tooltipY: am5.percent(0),
-    width: am5.percent(90)
+      valueXField: "instant",
+      stacked: true,
+      calculateTotals: true,
+      maskBullets: false,
+      minBulletDistance: 25
+    });
+    ret.columns.template.setAll({
+      fillOpacity: 0.5,
+      cornerRadiusTL: 2,
+      cornerRadiusTR: 2,
+      tooltipText: "{centsPerKWh} c/kWh",
+      tooltipY: am5.percent(0),
+      width: am5.percent(90)
+    });
+    ret.columns.template.states.create("hover", {
+      fillOpacity: 1
+    });
+    chart.series.push(ret);
+
+    ret.columns.template.adapters.add("tooltipText", (text, target) => {
+      let instant = target.dataItem.dataContext.instant;
+      return formatInTimeZone(new Date(instant), 'Europe/Helsinki', "yyyy-MM-dd HH:mm") + " - " + formatInTimeZone(addHours(new Date(instant), 1), 'Europe/Helsinki', "HH:mm") + "\n" + text;
+    });
+    
+    return ret;
+  };
+  let series = mkSeries("Spot");
+  let taxSeries = mkSeries("Tax 24%");
+  let totals = mkSeries("totals");
+  
+  totals.bullets.push(function () {
+    return am5.Bullet.new(root, {
+      locationY: 1,
+      sprite: am5.Label.new(root, {
+        text: "{valueYSum}",
+        scale: 0.6,
+        centerY: am5.p100,
+        centerX: am5.p50,
+        populateText: true
+      })
+    });
   });
   
-  series.columns.template.states.create("hover", {
-    fillOpacity: 1
-  });
+  series.set("fill", am5.color("#ff8282"));
   series.set("heatRules", [{
     target: series.columns.template,
     dataField: "valueY",
@@ -110,18 +131,56 @@
     }
   }]);
   series.columns.template.adapters.add('opacity', (_,target) => 0.3 + Math.abs(2*target.dataItem.dataContext.centsPerKWh / 40));
-  series.columns.template.adapters.add("tooltipText", (text, target) => {
-    let instant = target.dataItem.dataContext.instant;
-    return formatInTimeZone(new Date(instant), 'Europe/Helsinki', "yyyy-MM-dd HH:mm") + " - " + formatInTimeZone(addHours(new Date(instant), 1), 'Europe/Helsinki', "HH:mm") + text;
-  });
 
   series.events.once("datavalidated", () => {
     xAxis.zoomToDates(addHours(new Date(), -24), new Date(Math.max(...series.data.values.map(x => x.instant))));
   });
 
+  let legend = chart.plotContainer.children.push(am5.Legend.new(root, {
+    layout: root.verticalLayout
+  }));
+  legend.data.setAll([series, taxSeries]);
+
+  let range = xAxis.makeDataItem({
+    value:    new Date().getTime() - 1000*60*1,
+    endValue: new Date().getTime() + 1000*60*1
+  });
+  setInterval(() => {
+    let now = new Date();
+    range.setAll({
+      value:    now.getTime() - 1000*60*1,
+      endValue: now.getTime() + 1000*60*1
+    });
+  }, 60000);
+  let axisFill = xAxis.createAxisRange(range).get("axisFill");
+  axisFill.setAll({
+      fill:        am5.color('#85c7fc'),
+      stroke:      am5.color('#85c7fc'),
+      fillOpacity: 1,
+      strokeWidth: 5,
+      visible: true,
+      tooltip: am5.Tooltip.new(root, {}),
+      tooltipY: 0,
+      showTooltipOn: "always"
+  });
+  axisFill.get("tooltip").adapters.add("bounds", () => chart.plotContainer.globalBounds());
+
+  axisFill.adapters.add("tooltipText", (text, target) => {
+    let instant = target.dataItem.get('value');
+    let price = () => series.data.values.findLast(x => x.instant <= instant).centsPerKWh;
+    return formatInTimeZone(new Date(instant), 'Europe/Helsinki', "yyyy-MM-dd HH:mm") +
+      (series.data.values.length == 0 ? '' : "\n" + (price() > 0 ? price().toFixed(2) + " + " + (price()*0.24).toFixed(2) + " = " + (price()*1.24).toFixed(2) : price()) + " c/kwh");
+  });
+
   let init = () => {
     getData("spot", () => q.value, data => {
       series.data.setAll(data);
+      taxSeries.data.setAll(data.map(x => {
+        return {...x, centsPerKWh: x.centsPerKWh > 0 ? x.centsPerKWh*0.24 : 0};
+      }));
+      totals.data.setAll(data.map(x => {
+        return {...x, centsPerKWh: 0};
+      }));
       let interval = {start: Math.min(...data.map(x => x.instant)), end: Math.max(...data.map(x => x.instant))};
 
       eachWeekendOfInterval(interval).forEach(x => {
@@ -136,10 +195,10 @@
                 color: am5.color("#000000")
               }, {
                 color: am5.color("#ffffff"),
-                offset: 0.10
+                offset: 0.30
               }, {
                 color: am5.color("#ffffff"),
-                offset: 0.90
+                offset: 0.95
               }, {
                 color: am5.color("#000000")
               }]

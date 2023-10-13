@@ -7,14 +7,16 @@
     <meta name="application-name" content="Spot"/>
     <meta name="apple-mobile-web-app-capable" content="yes"/>
     <meta name="mobile-web-app-capable" content="yes"/>
-    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
-    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+    <script src="https://cdn.amcharts.com/lib/version/5.4.1/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/version/5.4.1/xy.js"></script>
+    <script src="https://cdn.amcharts.com/lib/version/5.4.1/themes/Animated.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
     <script src="web/dist/bundle.js"></script>
     <link rel="stylesheet" href="style.css" />
   </head>
 <body>
   <header>
+    <span class="current" hx-get="/current.html?tax=24" hx-trigger="load, every 60s"></span>
     <input id="query" value="SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '{start}') AND strftime('%s', '{end}')" placeholder="your query here..." />
     <a href="api/">API docs</a>
     <a href="current.csv">Current price</a>

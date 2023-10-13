@@ -21,3 +21,14 @@ input {
     height: 80vh;
     height: calc(99dvh - 32px);
 }
+.current {
+    border: 1px dotted cadetblue;
+    padding: 0.2em;
+    margin-top: -3px;
+    border-radius: 0.4em;
+    background: skyblue;
+}
+.current .unit {
+    font-variant: all-small-caps;
+    font-size: 0.75em;
+}
