@@ -62,6 +62,14 @@
                         "minimum": 0,
                         "maximum": 100
                     }
+                },
+                {
+                    "name": "delta",
+                    "in": "query",
+                    "description": "delta hours from current time, + for future, - for past (default: 0)",
+                    "schema": {
+                        "type": "integer"
+                    }
                 }],
                 "responses": {
                     "200": {
