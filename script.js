@@ -140,7 +140,7 @@
     layout: root.verticalLayout
   }));
   legend.data.setAll([series, taxSeries]);
-
+  
   let range = xAxis.makeDataItem({
     value:    new Date().getTime() - 1000*60*1,
     endValue: new Date().getTime() + 1000*60*1
@@ -172,22 +172,15 @@
       (series.data.values.length == 0 ? '' : "\n" + (price() > 0 ? price().toFixed(2) + " + " + (price()*0.24).toFixed(2) + " = " + (price()*1.24).toFixed(2) : price()) + " c/kwh");
   });
 
-  let init = () => {
-    getData("spot", () => q.value, data => {
-      series.data.setAll(data);
-      taxSeries.data.setAll(data.map(x => {
-        return {...x, centsPerKWh: x.centsPerKWh > 0 ? x.centsPerKWh*0.24 : 0};
-      }));
-      totals.data.setAll(data.map(x => {
-        return {...x, centsPerKWh: 0};
-      }));
-      let interval = {start: Math.min(...data.map(x => x.instant)), end: Math.max(...data.map(x => x.instant))};
-
+  let initRanges = (interval, showWeekends, showNights) => {
+    if (showWeekends) {
       eachWeekendOfInterval(interval).forEach(x => {
-        xAxis.createAxisRange(xAxis.makeDataItem({
+        let weekend = xAxis.createAxisRange(xAxis.makeDataItem({
             value:    x.getTime(),
             endValue: addHours(x, 24).getTime(),
-        })).get("axisFill").setAll({
+        }));
+        weekend.set("userData", { weekend: true });
+        weekend.get("axisFill").setAll({
             visible: true,
             fillOpacity: 0.5,
             fillGradient: am5.LinearGradient.new(root, {
@@ -205,19 +198,85 @@
             })
         });
       });
+    }
 
+    if (showNights) {
       eachDayOfInterval(interval).forEach(x => {
-        xAxis.createAxisRange(xAxis.makeDataItem({
+        let night = xAxis.createAxisRange(xAxis.makeDataItem({
             value:    zonedTimeToUtc(new Date(formatInTimeZone(x, 'Europe/Helsinki', 'yyyy-MM-dd') + 'T22:00:00'), 'Europe/Helsinki').getTime(),
             endValue: zonedTimeToUtc(new Date(formatInTimeZone(addHours(x, 24), 'Europe/Helsinki', 'yyyy-MM-dd') + 'T07:00:00'), 'Europe/Helsinki').getTime(),
-        })).get("axisFill").setAll({
+        }));
+        night.set("userData", { night: true });
+        night.get("axisFill").setAll({
             fill:        am5.color('#0000ff'),
             fillOpacity: 0.05,
             visible: true
         });
       });
+    }
+  };
+
+  let showNights = legend.children.push(am5.Button.new(root, {
+    active: true,
+    width: 20,
+    height: 20,
+    dx: 4,
+    marginTop: 6,
+    fill: am5.color('#0000ff'),
+    tooltipText: "Show/hide nights"
+  }));
+  showNights.get('background').setAll({
+    fill: am5.color('#0000ff')
+  });
+  let showWeekends = legend.children.push(am5.Button.new(root, {
+    active: true,
+    width: 20,
+    height: 20,
+    dx: 4,
+    marginTop: 6,
+    fill: am5.color('#000000'),
+    tooltipText: "Show/hide weekends"
+  }));
+  showWeekends.get('background').setAll({
+    fill: am5.color('#000000')
+  });
+
+  let init = () => {
+    let baseInterval = [...document.querySelectorAll('#template option')].find(x => x.getAttribute('value') == x.parentElement.value).getAttribute('data-baseInterval');
+    xAxis.set('baseInterval', { timeUnit: baseInterval, count: 1 });
+
+    getData("spot", () => q.value, data => {
+      series.data.setAll(data);
+      taxSeries.data.setAll(data.map(x => {
+        return {...x, centsPerKWh: x.centsPerKWh > 0 ? x.centsPerKWh*0.24 : 0};
+      }));
+      totals.data.setAll(data.map(x => {
+        return {...x, centsPerKWh: 0};
+      }));
+      let interval = {start: Math.min(...data.map(x => x.instant)), end: Math.max(...data.map(x => x.instant))};
+
+      xAxis.axisRanges.clear();
+      initRanges(interval, showWeekends.get('active'), showNights.get('active'));
     });
   };
+
+  showNights.events.on("click", () => {
+    if (showNights.get('active')) {
+      xAxis.axisRanges.values.filter(x => x.get('userData').night).forEach(x => xAxis.axisRanges.removeValue(x));
+    } else {
+      init();
+    }
+    showNights.set('active', !showNights.get('active'));
+  });
+
+  showWeekends.events.on("click", () => {
+    if (showWeekends.get('active')) {
+      xAxis.axisRanges.values.filter(x => x.get('userData').weekend).forEach(x => xAxis.axisRanges.removeValue(x));
+    } else {
+      init();
+    }
+    showWeekends.set('active', !showWeekends.get('active'));
+  });
 
   init();
   q.addEventListener('change', init);
