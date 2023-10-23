@@ -25,7 +25,6 @@ input {
     border: 1px dotted cadetblue;
     padding: 0.2em;
     max-width: 10em;
-    overflow: hidden;
     margin-top: -3px;
     border-radius: 0.4em;
     background: skyblue;
