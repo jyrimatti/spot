@@ -20,6 +20,11 @@
 <body>
   <header>
     <span class="current" hx-get="/current.html?tax=24" hx-trigger="load, every 60s"></span>
+    <select id="template">
+      <option value="1">Past month</option>
+      <option value="2">Past year</option>
+      <option value="3">All time</option>
+    </select>
     <input id="query" value="SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '{start}') AND strftime('%s', '{end}')" placeholder="your query here..." />
     <a href="api/">API docs</a>
     <a href="" title="&lt;a href='current.html'&gt;html&lt;/a&gt; | &lt;a href='current.csv'&gt;csv&lt;/a&gt; | &lt;a href='current.json'&gt;json&lt;/a&gt;">Current price</a>
@@ -32,6 +37,20 @@
   </section>
   <script type="text/javascript" src="script.js"></script>
   <script>
+    document.body.querySelectorAll('option').forEach(x => {
+      if (x.getAttribute('value') == 1) {
+        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addMonths(new Date(), -1).toISOString() + "') AND strftime('%s', '" + new Date().toISOString() + "')");
+      } else if (x.getAttribute('value') == 2) {
+        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addYears(new Date(), -1).toISOString() + "') AND strftime('%s', '" + new Date().toISOString() + "')");
+      } else if (x.getAttribute('value') == 3) {
+        x.setAttribute('value', "SELECT * FROM spot");
+      }
+    });
+    document.getElementById('template').onchange = function() {
+      document.getElementById('query').value = this.value;
+      document.getElementById('query').dispatchEvent(new Event('change'));
+    };
+
     document.body.querySelectorAll('[title]').forEach(x => {
       x.setAttribute('title', x.getAttribute('title').replaceAll('{{today}}', new Date().toISOString().slice(0, 10)));
     });

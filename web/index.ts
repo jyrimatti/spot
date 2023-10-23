@@ -1,6 +1,6 @@
 import { createDbWorker } from "sql.js-httpvfs";
 import { zonedTimeToUtc, formatInTimeZone } from 'date-fns-tz';
-import { addHours, eachDayOfInterval, eachWeekendOfInterval } from 'date-fns';
+import { addHours, addMonths, addYears, eachDayOfInterval, eachWeekendOfInterval } from 'date-fns';
 import {fi} from 'date-fns/locale';
 
 const workerUrl = new URL(
@@ -34,6 +34,8 @@ async function load(db: string, query: string) {
 (window as any).zonedTimeToUtc = zonedTimeToUtc;
 (window as any).formatInTimeZone = formatInTimeZone;
 (window as any).addHours = addHours;
+(window as any).addMonths = addMonths;
+(window as any).addYears = addYears;
 (window as any).eachDayOfInterval = eachDayOfInterval;
 (window as any).eachWeekendOfInterval = eachWeekendOfInterval;
 (window as any).fi = fi;
