@@ -21,9 +21,20 @@
   <header>
     <span class="current" hx-get="/current.html?tax=24" hx-trigger="load, every 60s"></span>
     <select id="template">
-      <option value="1">Past month</option>
-      <option value="2">Past year</option>
-      <option value="3">All time</option>
+      <option value="1" data-baseInterval="hour">Past month</option>
+      <option value="2" data-baseInterval="hour">Past 3 months</option>
+      <option value="3" data-baseInterval="hour">Past 6 months</option>
+      <option value="4" data-baseInterval="hour">Past year</option>
+      <option value="5" data-baseInterval="hour">All time</option>
+      <option value="6" data-baseInterval="day">Daily averages</option>
+      <option value="7" data-baseInterval="week">Weekly averages</option>
+      <option value="8" data-baseInterval="month">Monthly averages</option>
+      <option value="9" data-baseInterval="day">Daily minimums</option>
+      <option value="10" data-baseInterval="week">Weekly minimums</option>
+      <option value="11" data-baseInterval="month">Monthly minimums</option>
+      <option value="12" data-baseInterval="day">Daily maximums</option>
+      <option value="13" data-baseInterval="week">Weekly maximums</option>
+      <option value="14" data-baseInterval="month">Monthly maximums</option>
     </select>
     <input id="query" value="SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '{start}') AND strftime('%s', '{end}')" placeholder="your query here..." />
     <a href="api/">API docs</a>
@@ -41,9 +52,31 @@
       if (x.getAttribute('value') == 1) {
         x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addMonths(new Date(), -1).toISOString() + "') AND strftime('%s', '" + new Date().toISOString() + "')");
       } else if (x.getAttribute('value') == 2) {
-        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addYears(new Date(), -1).toISOString() + "') AND strftime('%s', '" + new Date().toISOString() + "')");
+        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addMonths(new Date(), -3).toISOString() + "') AND strftime('%s', '" + new Date().toISOString() + "')");
       } else if (x.getAttribute('value') == 3) {
+        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addMonths(new Date(), -6).toISOString() + "') AND strftime('%s', '" + new Date().toISOString() + "')");
+      } else if (x.getAttribute('value') == 4) {
+        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addYears(new Date(), -1).toISOString() + "') AND strftime('%s', '" + new Date().toISOString() + "')");
+      } else if (x.getAttribute('value') == 5) {
         x.setAttribute('value', "SELECT * FROM spot");
+      } else if (x.getAttribute('value') == 6) {
+        x.setAttribute('value', "SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch')");
+      } else if (x.getAttribute('value') == 7) {
+        x.setAttribute('value', "SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch')");
+      } else if (x.getAttribute('value') == 8) {
+        x.setAttribute('value', "SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch')");
+      } else if (x.getAttribute('value') == 9) {
+        x.setAttribute('value', "SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch')");
+      } else if (x.getAttribute('value') == 10) {
+        x.setAttribute('value', "SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch')");
+      } else if (x.getAttribute('value') == 11) {
+        x.setAttribute('value', "SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch')");
+      } else if (x.getAttribute('value') == 12) {
+        x.setAttribute('value', "SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch')");
+      } else if (x.getAttribute('value') == 13) {
+        x.setAttribute('value', "SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch')");
+      } else if (x.getAttribute('value') == 14) {
+        x.setAttribute('value', "SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch')");
       }
     });
     document.getElementById('template').onchange = function() {
