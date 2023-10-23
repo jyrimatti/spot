@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell --pure -I channel:nixos-23.05-small -i dash -p nodejs
+#! nix-shell --pure -I channel:nixos-23.05-small -i dash -p nodejs dash
 set -eu
 
 echo '{}' > package.json
