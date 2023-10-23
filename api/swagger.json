@@ -29,6 +29,9 @@
                         "description": "The price"
                     }
                 }
+            },
+            "html": {
+                "type": "string"
             }
         }
     },
@@ -42,7 +45,7 @@
                     "required": true,
                     "description": "output format",
                     "schema": {
-                        "enum": ["json", "csv"]
+                        "enum": ["json", "csv", "html"]
                     }
                 },
                 {
@@ -84,6 +87,11 @@
                                 "schema": {
                                     "$ref": "#/components/schemas/csv"
                                 }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/html"
+                                }
                             }
                         }
                     }
@@ -99,7 +107,7 @@
                     "required": true,
                     "description": "output format",
                     "schema": {
-                        "enum": ["json", "csv"]
+                        "enum": ["json", "csv", "html"]
                     }
                 },{
                     "name": "window",
@@ -180,6 +188,11 @@
                                         "$ref": "#/components/schemas/csv"
                                     }
                                 }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/html"
+                                }
                             }
                         }
                     }
@@ -195,7 +208,7 @@
                     "required": true,
                     "description": "output format",
                     "schema": {
-                        "enum": ["json", "csv"]
+                        "enum": ["json", "csv", "html"]
                     }
                 },{
                     "name": "day",
@@ -242,6 +255,11 @@
                                     "items": {
                                         "$ref": "#/components/schemas/csv"
                                     }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/html"
                                 }
                             }
                         }

@@ -1,0 +1,12 @@
+#! /usr/bin/env nix-shell
+#! nix-shell -i dash -I channel:nixos-23.05-small -p jq
+set -eu
+
+. ./util.sh
+
+res=$(./day.sh $(getParameters) 2>&1) || (echo -e "Status: 400\n\n$res" && exit 1)
+
+echo 'Content-Type: text/html'
+echo 'Cache-Control: max-age=60, must-revalidate'
+echo ''
+echo "$res" | jq -r '"<html><body><table><tr><th>hour</th><th>c/kWh</th></tr>" + (map("<tr><td>" + .startTime + "</td><td>" + (.centsPerKWh | .*1000 | round/1000 | tostring) + "</td></tr>") | join("")) + "</table></body></html>"'

@@ -9,4 +9,4 @@ res=$(./current.sh $(getParameters) | jq '.centsPerKWh' 2>&1) || (echo -e "Statu
 echo 'Content-Type: text/html'
 echo 'Cache-Control: max-age=60, must-revalidate'
 echo ''
-echo "<html><body><span class="value">$res</span><span class="unit"> c/kWh</span></body></html>"
+echo "<html><body><span class='value'>$(printf %.3f "$res")</span> <span class='unit'>c/kWh</span></body></html>"
