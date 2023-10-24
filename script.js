@@ -140,39 +140,39 @@
     layout: root.verticalLayout
   }));
   legend.data.setAll([series, taxSeries]);
-  
-  let range = xAxis.makeDataItem({
-    value:    new Date().getTime() - 1000*60*1,
-    endValue: new Date().getTime() + 1000*60*1
-  });
-  setInterval(() => {
-    let now = new Date();
-    range.setAll({
-      value:    now.getTime() - 1000*60*1,
-      endValue: now.getTime() + 1000*60*1
-    });
-  }, 60000);
-  let axisFill = xAxis.createAxisRange(range).get("axisFill");
-  axisFill.setAll({
-      fill:        am5.color('#85c7fc'),
-      stroke:      am5.color('#85c7fc'),
-      fillOpacity: 1,
-      strokeWidth: 5,
-      visible: true,
-      tooltip: am5.Tooltip.new(root, {}),
-      tooltipY: 0,
-      showTooltipOn: "always"
-  });
-  axisFill.get("tooltip").adapters.add("bounds", () => chart.plotContainer.globalBounds());
-
-  axisFill.adapters.add("tooltipText", (text, target) => {
-    let instant = target.dataItem.get('value');
-    let price = () => series.data.values.findLast(x => x.instant <= instant).centsPerKWh;
-    return formatInTimeZone(new Date(instant), 'Europe/Helsinki', "yyyy-MM-dd HH:mm") +
-      (series.data.values.length == 0 ? '' : "\n" + (price() > 0 ? price().toFixed(2) + " + " + (price()*0.24).toFixed(2) + " = " + (price()*1.24).toFixed(2) : price()) + " c/kwh");
-  });
 
   let initRanges = (interval, showWeekends, showNights) => {
+    let range = xAxis.makeDataItem({
+      value:    new Date().getTime() - 1000*60*1,
+      endValue: new Date().getTime() + 1000*60*1
+    });
+    setInterval(() => {
+      let now = new Date();
+      range.setAll({
+        value:    now.getTime() - 1000*60*1,
+        endValue: now.getTime() + 1000*60*1
+      });
+    }, 60000);
+    let axisFill = xAxis.createAxisRange(range).get("axisFill");
+    axisFill.setAll({
+        fill:        am5.color('#85c7fc'),
+        stroke:      am5.color('#85c7fc'),
+        fillOpacity: 1,
+        strokeWidth: 5,
+        visible: true,
+        tooltip: am5.Tooltip.new(root, {}),
+        tooltipY: 0,
+        showTooltipOn: "always"
+    });
+    axisFill.get("tooltip").adapters.add("bounds", () => chart.plotContainer.globalBounds());
+  
+    axisFill.adapters.add("tooltipText", (text, target) => {
+      let instant = target.dataItem.get('value');
+      let price = () => series.data.values.findLast(x => x.instant <= instant).centsPerKWh;
+      return formatInTimeZone(new Date(instant), 'Europe/Helsinki', "yyyy-MM-dd HH:mm") +
+        (series.data.values.length == 0 ? '' : "\n" + (price() > 0 ? price().toFixed(2) + " + " + (price()*0.24).toFixed(2) + " = " + (price()*1.24).toFixed(2) : price()) + " c/kwh");
+    });
+
     if (showWeekends) {
       eachWeekendOfInterval(interval).forEach(x => {
         let weekend = xAxis.createAxisRange(xAxis.makeDataItem({
