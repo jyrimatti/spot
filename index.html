@@ -50,13 +50,13 @@
   <script>
     document.body.querySelectorAll('option').forEach(x => {
       if (x.getAttribute('value') == 1) {
-        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addMonths(new Date(), -1).toISOString() + "') AND strftime('%s', '" + new Date().toISOString() + "')");
+        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addMonths(new Date(), -1).toISOString() + "') AND strftime('%s', '" + addHours(new Date(), 24).toISOString() + "')");
       } else if (x.getAttribute('value') == 2) {
-        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addMonths(new Date(), -3).toISOString() + "') AND strftime('%s', '" + new Date().toISOString() + "')");
+        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addMonths(new Date(), -3).toISOString() + "') AND strftime('%s', '" + addHours(new Date(), 24).toISOString() + "')");
       } else if (x.getAttribute('value') == 3) {
-        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addMonths(new Date(), -6).toISOString() + "') AND strftime('%s', '" + new Date().toISOString() + "')");
+        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addMonths(new Date(), -6).toISOString() + "') AND strftime('%s', '" + addHours(new Date(), 24).toISOString() + "')");
       } else if (x.getAttribute('value') == 4) {
-        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addYears(new Date(), -1).toISOString() + "') AND strftime('%s', '" + new Date().toISOString() + "')");
+        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addYears(new Date(), -1).toISOString() + "') AND strftime('%s', '" + addHours(new Date(), 24).toISOString() + "')");
       } else if (x.getAttribute('value') == 5) {
         x.setAttribute('value', "SELECT * FROM spot");
       } else if (x.getAttribute('value') == 6) {
