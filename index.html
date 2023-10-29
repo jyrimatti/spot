@@ -14,6 +14,25 @@
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
     <script src="web/dist/bundle.js"></script>
+    <script src="script.js"></script>
+    <script>
+      import('https://cdn.skypack.dev/date-fns@2.30.0').then(dateFns => {
+        window.dateFns = dateFns;
+        import('https://cdn.skypack.dev/date-fns@2.30.0/locale').then(dateFnsLocale => {
+          window.dateFnsLocale = dateFnsLocale;
+          import('https://cdn.skypack.dev/date-fns-tz@2.0.0').then(dateFnsTz => {
+            window.dateFnsTz = dateFnsTz;
+            // does not work, need to bundle :(
+            //import('https://cdn.jsdelivr.net/npm/sqlite-wasm-http@1.1.1/+esm').then(sqliteWasm => {
+            //  window.sqliteWasm = sqliteWasm;
+              initTemplates();
+              initTooltips();
+              initChart();
+            //});
+          });
+        });
+      });
+    </script>
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light.css" />
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -46,59 +65,6 @@
   <section class="container">
     <div id="chart"></div>
   </section>
-  <script type="text/javascript" src="script.js"></script>
-  <script>
-    document.body.querySelectorAll('option').forEach(x => {
-      if (x.getAttribute('value') == 1) {
-        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addMonths(new Date(), -1).toISOString() + "') AND strftime('%s', '" + addHours(new Date(), 24).toISOString() + "')");
-      } else if (x.getAttribute('value') == 2) {
-        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addMonths(new Date(), -3).toISOString() + "') AND strftime('%s', '" + addHours(new Date(), 24).toISOString() + "')");
-      } else if (x.getAttribute('value') == 3) {
-        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addMonths(new Date(), -6).toISOString() + "') AND strftime('%s', '" + addHours(new Date(), 24).toISOString() + "')");
-      } else if (x.getAttribute('value') == 4) {
-        x.setAttribute('value', "SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '" + addYears(new Date(), -1).toISOString() + "') AND strftime('%s', '" + addHours(new Date(), 24).toISOString() + "')");
-      } else if (x.getAttribute('value') == 5) {
-        x.setAttribute('value', "SELECT * FROM spot");
-      } else if (x.getAttribute('value') == 6) {
-        x.setAttribute('value', "SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch')");
-      } else if (x.getAttribute('value') == 7) {
-        x.setAttribute('value', "SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch')");
-      } else if (x.getAttribute('value') == 8) {
-        x.setAttribute('value', "SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch')");
-      } else if (x.getAttribute('value') == 9) {
-        x.setAttribute('value', "SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch')");
-      } else if (x.getAttribute('value') == 10) {
-        x.setAttribute('value', "SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch')");
-      } else if (x.getAttribute('value') == 11) {
-        x.setAttribute('value', "SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch')");
-      } else if (x.getAttribute('value') == 12) {
-        x.setAttribute('value', "SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch')");
-      } else if (x.getAttribute('value') == 13) {
-        x.setAttribute('value', "SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch')");
-      } else if (x.getAttribute('value') == 14) {
-        x.setAttribute('value', "SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch')");
-      }
-    });
-    document.getElementById('template').onchange = function() {
-      document.getElementById('query').value = this.value;
-      document.getElementById('query').dispatchEvent(new Event('change'));
-    };
-
-    document.body.querySelectorAll('[title]').forEach(x => {
-      x.setAttribute('title', x.getAttribute('title').replaceAll('{{today}}', new Date().toISOString().slice(0, 10)));
-    });
-
-    tippy(document.body.querySelectorAll('[title]'), {
-      allowHTML: true,
-      interactive: true,
-      theme: 'light',
-      content(reference) {
-          const title = reference.getAttribute('title');
-          reference.removeAttribute('title');
-          return title;
-      }
-  });
-  </script>
 </body>
 </html>
 

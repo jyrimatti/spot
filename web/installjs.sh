@@ -4,6 +4,6 @@ set -eu
 
 echo '{}' > package.json
 npm install --save-dev webpack webpack-cli typescript ts-loader http-server
-npm install --save sql.js-httpvfs date-fns date-fns-tz
+npm install --save sqlite-wasm-http
 rm tsconfig.json
 npx tsc --target es2020 --module es2020 --moduleResolution node --init
