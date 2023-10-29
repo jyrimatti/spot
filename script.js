@@ -330,7 +330,8 @@
 
     showNights.events.on("click", () => {
       if (showNights.get('active')) {
-        xAxis.axisRanges.values.filter(x => x.get('userData').night).forEach(x => xAxis.axisRanges.removeValue(x));
+        xAxis.axisRanges.values.filter(x => x.get('userData') && x.get('userData').night)
+                               .forEach(x => xAxis.axisRanges.removeValue(x));
       } else {
         init();
       }
@@ -339,7 +340,8 @@
 
     showWeekends.events.on("click", () => {
       if (showWeekends.get('active')) {
-        xAxis.axisRanges.values.filter(x => x.get('userData').weekend).forEach(x => xAxis.axisRanges.removeValue(x));
+        xAxis.axisRanges.values.filter(x => x.get('userData') && x.get('userData').weekend)
+                               .forEach(x => xAxis.axisRanges.removeValue(x));
       } else {
         init();
       }
