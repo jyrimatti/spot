@@ -68,7 +68,7 @@
 
     const pool = await sqliteWasmHttp.createSQLiteHTTPPool({ workers: 1, backendType: "sync" });
     await pool.open('/spot.db');
-    const data = await pool.exec(queryF(), {});
+    const data = await pool.exec(queryF(), {}, { rowMode: "object" });
 
     if (data == "") {
       console.log("Got empty data for " + name);
@@ -76,16 +76,9 @@
       console.log("Got " + data.length + " rows for " + name);
     }
 
-    cb(data.map(x => {
-      let ret = {};
-      x.columnNames.forEach((c,i) => {
-        ret[c] = x.row[i];
-        if (c == 'instant') {
-          ret[c] = ret[c]*1000;
-        }
-      });
-      return ret;
-    }).sort((a,b) => a.instant - b.instant));
+    cb(data.map(x => x.row)
+           .map(x => x.instant ? {...x, instant: x.instant*1000} : x)
+           .sort((a,b) => a.instant - b.instant));
 
     await pool.close();
   };
