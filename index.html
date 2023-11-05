@@ -55,7 +55,7 @@
     </script>
 
     <header>
-      <span class="current" hx-get="/current.html?tax=24"></span>
+      <span class="current" hx-get="/current.html?tax=24" hx-trigger="load, every 60s"></span>
       
       <select id="template" onchange="htmx.find('#query').value = this.value; htmx.trigger('#query', 'change');">
         <option data-baseInterval="hour"  value="SELECT * FROM spot WHERE instant > strftime('%s', 'now', '-1 months') ORDER BY instant DESC">Past month</option>
