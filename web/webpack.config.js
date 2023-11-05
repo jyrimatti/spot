@@ -1,21 +1,36 @@
+const webpack = require('webpack');
+
 module.exports = {
-  entry: "./index.ts",
-  module: {
-    rules: [
-      {
-        test: /\.tsx?$/,
-        use: "ts-loader",
-        exclude: /node_modules/,
-      },
-    ],
-  },
+  entry: "./index.js",
   resolve: {
-    extensions: [".tsx", ".ts", ".js"],
+    extensions: [".js"],
   },
   output: {
-    filename: "bundle.js",
+    filename: "sqlite-wasm-http-[name].js",
+    clean: true,
+    asyncChunks: false,
   },
-  devServer: {
-    publicPath: "/dist",
+  module: {
+    rules: [
+      /*{
+        test: /\.wasm$/,
+        type: "asset/inline",
+      },*/
+      /*{
+        test: /worker\.js$/,
+        loader: 'worker-loader',
+        options: {
+          inline: 'no-fallback',
+        },
+      }*/
+    ],
   },
+  optimization: {
+    minimize: true
+  },
+  /*plugins: [
+    new webpack.optimize.LimitChunkCountPlugin({
+        maxChunks: 1
+    })
+  ],*/
 };

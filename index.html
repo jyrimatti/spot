@@ -1,70 +1,110 @@
 <html>
   <head>
-    <meta property="og:charset" content="UTF-8"/>
     <title>Spot prices in Finland</title>
+
+    <meta property="og:charset" content="UTF-8"/>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <meta name="apple-mobile-web-app-title" content="Spot"/>
     <meta name="application-name" content="Spot"/>
     <meta name="apple-mobile-web-app-capable" content="yes"/>
     <meta name="mobile-web-app-capable" content="yes"/>
+    
     <script src="https://cdn.amcharts.com/lib/version/5.4.1/index.js"></script>
     <script src="https://cdn.amcharts.com/lib/version/5.4.1/xy.js"></script>
     <script src="https://cdn.amcharts.com/lib/version/5.4.1/themes/Animated.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
     <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.6/dist/ext/client-side-templates.js"></script>
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
-    <script src="web/dist/bundle.js"></script>
-    <script src="script.js"></script>
-    <script>
-      import('https://cdn.skypack.dev/date-fns@2.30.0').then(dateFns => {
-        window.dateFns = dateFns;
-        import('https://cdn.skypack.dev/date-fns@2.30.0/locale').then(dateFnsLocale => {
-          window.dateFnsLocale = dateFnsLocale;
-          import('https://cdn.skypack.dev/date-fns-tz@2.0.0').then(dateFnsTz => {
-            window.dateFnsTz = dateFnsTz;
-            // does not work, need to bundle :(
-            //import('https://cdn.jsdelivr.net/npm/sqlite-wasm-http@1.1.1/+esm').then(sqliteWasm => {
-            //  window.sqliteWasm = sqliteWasm;
-              initTemplates();
-              initTooltips();
-              initChart();
-            //});
-          });
-        });
-      });
-    </script>
+    <script src="web/dist/sqlite-wasm-http-main.js"></script>
+    <script src="sqlite.js"></script>
+    <script src="chart.js"></script>
+    <script src="ui.js"></script>
+
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light.css" />
     <link rel="stylesheet" href="style.css" />
   </head>
-<body>
-  <header>
-    <span class="current" hx-get="/current.html?tax=24" hx-trigger="load, every 60s"></span>
-    <select id="template">
-      <option value="1" data-baseInterval="hour">Past month</option>
-      <option value="2" data-baseInterval="hour">Past 3 months</option>
-      <option value="3" data-baseInterval="hour">Past 6 months</option>
-      <option value="4" data-baseInterval="hour">Past year</option>
-      <option value="5" data-baseInterval="hour">All time</option>
-      <option value="6" data-baseInterval="day">Daily averages</option>
-      <option value="7" data-baseInterval="week">Weekly averages</option>
-      <option value="8" data-baseInterval="month">Monthly averages</option>
-      <option value="9" data-baseInterval="day">Daily minimums</option>
-      <option value="10" data-baseInterval="week">Weekly minimums</option>
-      <option value="11" data-baseInterval="month">Monthly minimums</option>
-      <option value="12" data-baseInterval="day">Daily maximums</option>
-      <option value="13" data-baseInterval="week">Weekly maximums</option>
-      <option value="14" data-baseInterval="month">Monthly maximums</option>
-    </select>
-    <input id="query" value="SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '{start}') AND strftime('%s', '{end}')" placeholder="your query here..." />
-    <a href="api/">API docs</a>
-    <a href="" title="&lt;a href='current.html'&gt;html&lt;/a&gt; | &lt;a href='current.csv'&gt;csv&lt;/a&gt; | &lt;a href='current.json'&gt;json&lt;/a&gt;">Current price</a>
-    <a href="" title="&lt;a href='day.html?day={{today}}'&gt;html&lt;/a&gt; | &lt;a href='day.csv?day={{today}}'&gt;csv&lt;/a&gt; | &lt;a href='day.json?day={{today}}'&gt;json&lt;/a&gt;">Daily prices</a>
-    <a href="" title="&lt;a href='window.html?window=3'&gt;html&lt;/a&gt; | &lt;a href='window.csv?window=3'&gt;csv&lt;/a&gt; | &lt;a href='window.json?window=3'&gt;json&lt;/a&gt;">Next window</a>
-    <a class="github" href="https://github.com/jyrimatti/spot"><img src="github-mark.png" /></a>
-  </header>
-  <section class="container">
-    <div id="chart"></div>
-  </section>
-</body>
+  <body hx-ext="client-side-templates,sqlite" hx-sqlite="/spot.db">
+    <template id="tablerow">
+      {{#data}}
+        <tr><td>{{formatInTimeZone (micro2milli instant) }}</td><td>{{round centsPerKWh}}</td></tr>
+      {{/data}}
+    </template>
+    
+    <script>
+      import('https://cdn.skypack.dev/date-fns@2.30.0').then(dateFns => {
+        window.dateFns = dateFns;
+        import('https://cdn.skypack.dev/date-fns-tz@2.0.0').then(dateFnsTz => {
+          window.dateFnsTz = dateFnsTz;
+
+          Handlebars.registerPartial("tablerow", Handlebars.compile(document.getElementById("tablerow").innerHTML));
+
+          Handlebars.registerHelper('formatInTimeZone', instant => dateFnsTz.formatInTimeZone(new Date(instant), 'Europe/Helsinki', "yyyy-MM-dd HH:mm"));
+          Handlebars.registerHelper('micro2milli', instant => instant*1000);
+          Handlebars.registerHelper('round', x => x.toFixed(3));
+
+          initTemplates(document);
+          initTooltips(document);
+          window.init = initChart();
+
+          htmx.trigger('#query', 'change');
+        });
+      });
+    </script>
+
+    <header>
+      <span class="current" hx-get="/current.html?tax=24"></span>
+      
+      <select id="template" onchange="htmx.find('#query').value = this.value; htmx.trigger('#query', 'change');">
+        <option data-baseInterval="hour"  value="SELECT * FROM spot WHERE instant > strftime('%s', 'now', '-1 months') ORDER BY instant DESC">Past month</option>
+        <option data-baseInterval="hour"  value="SELECT * FROM spot WHERE instant > strftime('%s', 'now', '-3 months') ORDER BY instant DESC">Past 3 months</option>
+        <option data-baseInterval="hour"  value="SELECT * FROM spot WHERE instant > strftime('%s', 'now', '-6 months') ORDER BY instant DESC">Past 6 months</option>
+        <option data-baseInterval="hour"  value="SELECT * FROM spot WHERE instant > strftime('%s', 'now', '-1 year') ORDER BY instant DESC">Past year</option>
+        <option data-baseInterval="hour"  value="SELECT * FROM spot ORDER BY instant DESC">All time</option>
+        <option data-baseInterval="day"   value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily averages</option>
+        <option data-baseInterval="week"  value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly averages</option>
+        <option data-baseInterval="month" value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly averages</option>
+        <option data-baseInterval="day"   value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily minimums</option>
+        <option data-baseInterval="week"  value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly minimums</option>
+        <option data-baseInterval="month" value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly minimums</option>
+        <option data-baseInterval="day"   value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily maximums</option>
+        <option data-baseInterval="week"  value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly maximums</option>
+        <option data-baseInterval="month" value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly maximums</option>
+      </select>
+      
+      <input id="query"
+             value="SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '{start}') AND strftime('%s', '{end}') ORDER BY instant DESC"
+             placeholder="your query here..."
+             hx-sql=""
+             hx-boost="true"
+             hx-target=":target tbody"
+             hx-trigger="change"
+             handlebars-array-template="tablerow"
+             hx-on:htmx:before-on-load="init(event.detail.xhr.response, getSelectedBaseInterval(document))" />
+      
+      <a href="api/">API docs</a>
+      <a href="" title="&lt;a href='current.html'&gt;html&lt;/a&gt; | &lt;a href='current.csv'&gt;csv&lt;/a&gt; | &lt;a href='current.json'&gt;json&lt;/a&gt;">Current price</a>
+      <a href="" title="&lt;a href='day.html?day={{today}}'&gt;html&lt;/a&gt; | &lt;a href='day.csv?day={{today}}'&gt;csv&lt;/a&gt; | &lt;a href='day.json?day={{today}}'&gt;json&lt;/a&gt;">Daily prices</a>
+      <a href="" title="&lt;a href='window.html?window=3'&gt;html&lt;/a&gt; | &lt;a href='window.csv?window=3'&gt;csv&lt;/a&gt; | &lt;a href='window.json?window=3'&gt;json&lt;/a&gt;">Next window</a>
+      
+      <a class="github" href="https://github.com/jyrimatti/spot"><img src="github-mark.png" /></a>
+    </header>
+    <section class="container">
+      <div id="table">
+        <a class="mode chart" href="#" title="Show chart" onclick="htmx.trigger('#query', 'change')">📊</a></span>
+        <table>
+          <thead>
+            <tr><th>instant</th><th>cents/kWh</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div id="chart">
+        <a class="mode table" href="#table" title="Show table" onclick="htmx.trigger('#query', 'change')">🔢</a>
+      </div>
+    </section>
+  </body>
 </html>
 

@@ -17,7 +17,6 @@ input {
     height: 22px;
 }
 .container {
-    position:relative;
     height: 80vh;
     height: calc(99dvh - 32px);
 }
@@ -25,6 +24,7 @@ input {
     border: 1px dotted cadetblue;
     padding: 0.2em;
     max-width: 10em;
+    margin-left: 2em;
     margin-top: -3px;
     border-radius: 0.4em;
     background: skyblue;
@@ -39,4 +39,31 @@ input {
 }
 select {
     width: 8em;
+}
+
+
+#table {
+    display: none;
+    overflow: scroll;
+    height: 100%;
+}
+table {
+    border-spacing: 2em 0.2em;
+    margin: 1em;
+}
+th {
+    text-align: left;
+    border-bottom: 1px solid black;
+}
+#table:target {
+    display: block;
+}
+#table:target + #chart {
+    display: none;
+}
+
+.mode {
+    position: absolute;
+    left: 8px;
+    top: 10px;
 }
