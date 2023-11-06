@@ -1,3 +1,45 @@
+/*
+
+Extension to use SQLite database over HTTP as a backend for Htmx.
+
+Requires sqlite-wasm-http bundled and served from same host where your application is,
+since Web Workers don't work with cross-domain requests.
+This can be done with webpack, for example:
+
+webpack.config:
+    module.exports = {
+        entry: "./index.js",
+        resolve: {
+            extensions: [".js"],
+        },
+        output: {
+            filename: "sqlite-wasm-http-[name].js",
+            clean: true,
+            asyncChunks: false,
+        }
+    };
+
+package.json:
+    {
+        "devDependencies": {
+            "webpack": "^5.89.0",
+            "webpack-cli": "^5.1.4"
+        },
+        "dependencies": {
+            "sqlite-wasm-http": "^1.1.2"
+        }
+    }
+
+index.js:
+    import {createSQLiteHTTPPool} from 'sqlite-wasm-http';
+    window.createSQLiteHTTPPool = createSQLiteHTTPPool;
+
+
+And include in your HTML:
+<script src="sqlite-wasm-http-main.js"></script>
+
+*/
+
 (function(){
     var api;
 
