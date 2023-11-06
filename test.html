@@ -1,0 +1,57 @@
+<html>
+  <head>
+    <title>Htmx Sqlite test page</title>
+
+    <meta charset="UTF-8" />
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.6/dist/ext/client-side-templates.js"></script>
+    <script src="web/dist/sqlite-wasm-http-main.js"></script>
+    <script src="sqlite.js"></script>
+  </head>
+  <body hx-ext="client-side-templates,sqlite" hx-sqlite="/spot.db">
+    <template id="template">
+      {{#data}}
+        {{c}} <i>c/kWh</i>
+      {{/data}}
+    </template>
+    
+    <script>
+      Handlebars.registerPartial("template", Handlebars.compile(document.getElementById("template").innerHTML));
+    </script>
+
+    <header>
+      <p>This page demontrates how the basic Htmx-stuff works with sqlite extension.</p>
+    </header>
+
+    <h1>Just show raw response</h1>
+    <p hx-boost="true" hx-trigger="load" hx-sql="SELECT AVG(centsPerKwh) FROM spot WHERE instant > strftime('%s', 'now', '-1 months')">loading...</p>
+    
+    <h1>Render response with client-side-templates</h1>
+    <p hx-boost="true" hx-trigger="load" handlebars-array-template="template" hx-sql="SELECT AVG(centsPerKwh) c FROM spot WHERE instant > strftime('%s', 'now', '-1 months')">loading...</p>
+
+    <h1>Handle response with javascript</h1>
+    <p hx-boost="true" hx-trigger="load" hx-on:htmx:before-on-load="this.innerText = 'Got: '+event.detail.xhr.response[0].c; event.preventDefault();" hx-sql="SELECT AVG(centsPerKwh) c FROM spot WHERE instant > strftime('%s', 'now', '-1 months')">loading...</p>
+
+    <h1>Include bind parameters explicitly, and load on change</h1>
+    <input name="months" value="2" />
+    <p hx-boost="true" hx-include="[name='months']" hx-trigger="load, change from:[name='months']" hx-sql="SELECT AVG(centsPerKwh) centsPerKwh FROM spot WHERE instant > strftime('%s', 'now', '-'||$months||' months')">loading...</p>
+
+    <h1>Include whole form automatically</h1>
+    <form>
+      <input name="months2" value="2" />
+      <p hx-boost="true" hx-trigger="load, change from:previous input" hx-sql="SELECT AVG(centsPerKwh) centsPerKwh FROM spot WHERE instant > strftime('%s', 'now', '-'||$months2||' months')">loading...</p>
+    </form>
+
+    <h1>Use <i>value</i> if hx-sql not defined, and target another element</h1>
+    <select hx-sql=""  hx-boost="true" hx-trigger="change" hx-target="#target">
+      <option disabled selected value></option>
+      <option value="SELECT AVG(centsPerKwh) FROM spot WHERE instant > strftime('%s', 'now', '-1 months')">1 month</option>
+      <option value="SELECT AVG(centsPerKwh) FROM spot WHERE instant > strftime('%s', 'now', '-2 months')">2 months</option>
+      <option value="SELECT AVG(centsPerKwh) FROM spot WHERE instant > strftime('%s', 'now', '-3 months')">3 months</option>
+    </select>
+    <p id="target">make your choice...</p>
+  </body>
+</html>
+

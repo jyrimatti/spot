@@ -22,7 +22,7 @@ let getSelectedBaseInterval = doc =>
   [...doc.querySelectorAll('#template option')].find(x => x.getAttribute('value') == x.parentElement.value)
                                                            .getAttribute('data-baseInterval');
 
-let readInterval = () => {
+let readInterval = dateFns => {
   if (window.location.hash) {
     let ret = window.location.hash.split("#").find(x => {
       let times = x.substring(1).split('/').map(x => new Date(x));
@@ -37,9 +37,8 @@ let readInterval = () => {
   return {start: dateFns.addMonths(new Date(), -1), end: dateFns.addDays(new Date(), 2)};
 };
 
-let initTemplates = doc => {
-  let interval = readInterval();
-  let q = doc.getElementById('query');
-  q.value = q.value.replace("{start}", interval.start.toISOString())
-                   .replace("{end}", interval.end.toISOString());
+let initQuery = (dateFns, elem) => {
+  let interval = readInterval(dateFns);
+  elem.value = elem.value.replace("{start}", interval.start.toISOString())
+                         .replace("{end}",   interval.end.toISOString());
 };
