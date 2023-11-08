@@ -4,54 +4,73 @@
 
     <meta charset="UTF-8" />
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.6/dist/ext/client-side-templates.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+    <script crossorigin src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script crossorigin src="https://unpkg.com/htmx.org@1.9.6/dist/ext/client-side-templates.js"></script>
     <script src="web/dist/sqlite-wasm-http-main.js"></script>
     <script src="sqlite.js"></script>
+
+    <style>
+      body {
+        display: flex;
+        flex-direction: row;
+      }
+    </style>
   </head>
-  <body hx-ext="client-side-templates,sqlite" hx-sqlite="/spot.db">
-    <template id="template">
-      {{#data}}
-        {{c}} <i>c/kWh</i>
-      {{/data}}
-    </template>
-    
-    <script>
-      Handlebars.registerPartial("template", Handlebars.compile(document.getElementById("template").innerHTML));
-    </script>
+  <body hx-ext="client-side-templates,sqlite">
+    <section hx-db="http:/spot.db">
+      <h1>Access a remote DB over Http with range request:</h1>
+      <template id="template">
+        {{#data}}
+          {{c}} <i>c/kWh</i>
+        {{/data}}
+      </template>
+      
+      <script>
+        Handlebars.registerPartial("template", Handlebars.compile(document.getElementById("template").innerHTML));
+      </script>
 
-    <header>
-      <p>This page demontrates how the basic Htmx-stuff works with sqlite extension.</p>
-    </header>
+      <header>
+        <p>This page demontrates how the basic Htmx-stuff works with sqlite extension.</p>
+      </header>
 
-    <h1>Just show raw response</h1>
-    <p hx-boost="true" hx-trigger="load" hx-sql="SELECT AVG(centsPerKwh) FROM spot WHERE instant > strftime('%s', 'now', '-1 months')">loading...</p>
-    
-    <h1>Render response with client-side-templates</h1>
-    <p hx-boost="true" hx-trigger="load" handlebars-array-template="template" hx-sql="SELECT AVG(centsPerKwh) c FROM spot WHERE instant > strftime('%s', 'now', '-1 months')">loading...</p>
+      <h2>Just show raw response</h2>
+      <p hx-boost="true" hx-trigger="load" hx-sql="SELECT AVG(centsPerKwh) FROM spot WHERE instant > strftime('%s', 'now', '-1 months')">loading...</p>
+      
+      <h2>Render response with client-side-templates</h2>
+      <p hx-boost="true" hx-trigger="load" handlebars-array-template="template" hx-sql="SELECT AVG(centsPerKwh) c FROM spot WHERE instant > strftime('%s', 'now', '-1 months')">loading...</p>
 
-    <h1>Handle response with javascript</h1>
-    <p hx-boost="true" hx-trigger="load" hx-on:htmx:before-on-load="this.innerText = 'Got: '+event.detail.xhr.response[0].c; event.preventDefault();" hx-sql="SELECT AVG(centsPerKwh) c FROM spot WHERE instant > strftime('%s', 'now', '-1 months')">loading...</p>
+      <h2>Handle response with javascript</h2>
+      <p hx-boost="true" hx-trigger="load" hx-on:htmx:before-on-load="this.innerText = 'Got: '+event.detail.xhr.response[0].c; event.preventDefault();" hx-sql="SELECT AVG(centsPerKwh) c FROM spot WHERE instant > strftime('%s', 'now', '-1 months')">loading...</p>
 
-    <h1>Include bind parameters explicitly, and load on change</h1>
-    <input name="months" value="2" />
-    <p hx-boost="true" hx-include="[name='months']" hx-trigger="load, change from:[name='months']" hx-sql="SELECT AVG(centsPerKwh) centsPerKwh FROM spot WHERE instant > strftime('%s', 'now', '-'||$months||' months')">loading...</p>
+      <h2>Include bind parameters explicitly, and load on change</h2>
+      <input name="months" value="2" />
+      <p hx-boost="true" hx-include="[name='months']" hx-trigger="load, change from:[name='months']" hx-sql="SELECT AVG(centsPerKwh) centsPerKwh FROM spot WHERE instant > strftime('%s', 'now', '-'||$months||' months')">loading...</p>
 
-    <h1>Include whole form automatically</h1>
-    <form>
-      <input name="months2" value="2" />
-      <p hx-boost="true" hx-trigger="load, change from:previous input" hx-sql="SELECT AVG(centsPerKwh) centsPerKwh FROM spot WHERE instant > strftime('%s', 'now', '-'||$months2||' months')">loading...</p>
-    </form>
+      <h2>Include whole form automatically</h2>
+      <form>
+        <input name="months2" value="2" />
+        <p hx-boost="true" hx-trigger="load, change from:previous input" hx-sql="SELECT AVG(centsPerKwh) centsPerKwh FROM spot WHERE instant > strftime('%s', 'now', '-'||$months2||' months')">loading...</p>
+      </form>
 
-    <h1>Use <i>value</i> if hx-sql not defined, and target another element</h1>
-    <select hx-sql=""  hx-boost="true" hx-trigger="change" hx-target="#target">
-      <option disabled selected value></option>
-      <option value="SELECT AVG(centsPerKwh) FROM spot WHERE instant > strftime('%s', 'now', '-1 months')">1 month</option>
-      <option value="SELECT AVG(centsPerKwh) FROM spot WHERE instant > strftime('%s', 'now', '-2 months')">2 months</option>
-      <option value="SELECT AVG(centsPerKwh) FROM spot WHERE instant > strftime('%s', 'now', '-3 months')">3 months</option>
-    </select>
-    <p id="target">make your choice...</p>
-  </body>
+      <h2>Use <i>value</i> if hx-sql not defined, and target another element</h2>
+      <select hx-sql="" hx-boost="true" hx-trigger="change" hx-target="#target">
+        <option disabled selected value></option>
+        <option value="SELECT AVG(centsPerKwh) FROM spot WHERE instant > strftime('%s', 'now', '-1 months')">1 month</option>
+        <option value="SELECT AVG(centsPerKwh) FROM spot WHERE instant > strftime('%s', 'now', '-2 months')">2 months</option>
+        <option value="SELECT AVG(centsPerKwh) FROM spot WHERE instant > strftime('%s', 'now', '-3 months')">3 months</option>
+      </select>
+      <p id="target">make your choice...</p>
+    </body>
+  </section>
+
+  <section hx-db="/spot.opfs" hx-sql="CREATE TABLE IF NOT EXISTS tab(num INTEGER); INSERT INTO tab SELECT 0 WHERE (SELECT count(*) FROM tab) = 0" hx-boost="true" hx-trigger="load">
+    <h1>Access a local persistent OPFS database:</h1>
+
+    <button hx-boost="true" hx-trigger="click" hx-sql="UPDATE tab SET num = num+1">increment</button>
+    <button hx-boost="true" hx-trigger="click" hx-sql="UPDATE tab SET num = 0">reset</button>
+
+    <p hx-boost="true" hx-trigger="load, click from:button" hx-sql="SELECT * FROM tab"></p>
+  </section>
 </html>
 

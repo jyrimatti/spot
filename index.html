@@ -10,23 +10,23 @@
     <meta name="apple-mobile-web-app-capable" content="yes"/>
     <meta name="mobile-web-app-capable" content="yes"/>
     
-    <script src="https://cdn.amcharts.com/lib/version/5.4.1/index.js"></script>
-    <script src="https://cdn.amcharts.com/lib/version/5.4.1/xy.js"></script>
-    <script src="https://cdn.amcharts.com/lib/version/5.4.1/themes/Animated.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.6/dist/ext/client-side-templates.js"></script>
-    <script src="https://unpkg.com/@popperjs/core@2"></script>
-    <script src="https://unpkg.com/tippy.js@6"></script>
+    <script crossorigin src="https://cdn.amcharts.com/lib/version/5.4.1/index.js"></script>
+    <script crossorigin src="https://cdn.amcharts.com/lib/version/5.4.1/xy.js"></script>
+    <script crossorigin src="https://cdn.amcharts.com/lib/version/5.4.1/themes/Animated.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
+    <script crossorigin src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <script crossorigin src="https://unpkg.com/htmx.org@1.9.6/dist/ext/client-side-templates.js"></script>
+    <script crossorigin src="https://unpkg.com/@popperjs/core@2"></script>
+    <script crossorigin src="https://unpkg.com/tippy.js@6"></script>
     <script src="web/dist/sqlite-wasm-http-main.js"></script>
     <script src="sqlite.js"></script>
     <script src="chart.js"></script>
     <script src="ui.js"></script>
 
-    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light.css" />
+    <link crossorigin rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light.css" />
     <link rel="stylesheet" href="style.css" />
   </head>
-  <body hx-ext="client-side-templates,sqlite" hx-sqlite="/spot.db">
+  <body hx-ext="client-side-templates,sqlite" hx-db="http:/spot.db">
     <template id="tablerow">
       {{#data}}
         <tr><td>{{formatInTimeZone (micro2milli instant) }}</td><td>{{round centsPerKWh}}</td></tr>

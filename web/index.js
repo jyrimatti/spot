@@ -1,3 +1,3 @@
-import {createSQLiteHTTPPool} from 'sqlite-wasm-http';
+import * as sqliteWasmHttp from 'sqlite-wasm-http';
 
-window.createSQLiteHTTPPool = createSQLiteHTTPPool;
+window.sqliteWasmHttp = sqliteWasmHttp;
