@@ -1,6 +1,11 @@
 /*
 
-Extension to use SQLite database over HTTP as a backend for Htmx.
+Extension to use SQLite database backend for Htmx over:
+- HTTP as a range requests (used when hx-db starts with http:)
+- OPFS
+
+Specify databases with hx-db attributes.
+Specify queries with hx-sql attributes (will use closest hx-db).
 
 Requires sqlite-wasm-http bundled and served from same host where your application is,
 since Web Workers don't work with cross-domain requests.
