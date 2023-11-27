@@ -15,6 +15,7 @@ type = "TemperatureSensor"
 
 [services.characteristics]
 Name = "Sähkön Spot-hinta"
+ConfiguredName = "Sähkön Spot-hinta"
 [services.characteristics.CurrentTemperature]
 minValue = -50
 minStep = 0.001
