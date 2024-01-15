@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell --pure -I channel:nixos-23.05-small -i dash -p dash
+#! nix-shell --pure -I channel:nixos-23.11-small -i dash -p dash
 set -eu
 
 . ./spot_env.sh
