@@ -153,10 +153,7 @@ let mkWeekendRanges = (dateFns, root, xAxis) => interval => {
             color: am5.color("#ffffff"),
             offset: 0.30
           }, {
-            color: am5.color("#ffffff"),
-            offset: 0.95
-          }, {
-            color: am5.color("#000000")
+            color: am5.color("#ffffff")
           }]
         })
     });
