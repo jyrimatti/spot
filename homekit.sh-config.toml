@@ -17,7 +17,7 @@ type = "TemperatureSensor"
 Name = "Sähkön Spot-hinta"
 ConfiguredName = "Sähkön Spot-hinta"
 [services.characteristics.CurrentTemperature]
-minValue = -50
+minValue = -99
 minStep = 0.001
 polling = 60
 cmd = "cd spot; ./cmd/currentPrice.sh"
