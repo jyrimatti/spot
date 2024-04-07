@@ -68,6 +68,7 @@
               }
             });
             document.querySelectorAll('[name="transmission"] input').forEach(x => x.dispatchEvent(new Event('change')));
+            document.querySelector('#template').dispatchEvent(new Event('change'));
           };
 
           initQuery(dateFns, document.getElementById('query'));
