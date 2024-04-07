@@ -44,7 +44,7 @@ input {
 select {
     width: 8em;
 }
-.query {
+#query {
     flex: 1;
 }
 
