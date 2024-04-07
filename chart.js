@@ -325,14 +325,14 @@ let initChart = (dateFns, dateFnsTz, dayPrice, nightPrice, nightStart, nightEnd,
     ev.target.set('active', !ev.target.get('active'));
     nightVisible.checked = ev.target.get('active');
     nightVisible.dispatchEvent(new CustomEvent("change"));
-    initRanges(spotSeries.data.values, true, nightStart.value, nightEnd.value);
+    initRanges(spotSeries.data.values, true, nightStart.value || '22:00', nightEnd.value || '07:00');
   });
 
   showWeekendsButton.events.on("click", ev => {
     ev.target.set('active', !ev.target.get('active'));
     weekendVisible.checked = ev.target.get('active');
     weekendVisible.dispatchEvent(new CustomEvent("change"));
-    initRanges(spotSeries.data.values, true, nightStart.value, nightEnd.value);
+    initRanges(spotSeries.data.values, true, nightStart.value || '22:00', nightEnd.value || '07:00');
   });
 
   return (data, baseInterval) => {
@@ -340,6 +340,6 @@ let initChart = (dateFns, dateFnsTz, dayPrice, nightPrice, nightStart, nightEnd,
       xAxis.set('baseInterval', { timeUnit: baseInterval, count: 1 });
     }
     initData(dateFns, dateFnsTz, spotSeries, taxSeries, transmissionSeries, totals)(data, parseFloat(dayPrice.value), parseFloat(nightPrice.value), nightStart.value, nightEnd.value);
-    initRanges(data, baseInterval == 'hour', nightStart.value, nightEnd.value);
+    initRanges(data, baseInterval == 'hour', nightStart.value || '22:00', nightEnd.value || '07:00');
   };
 };

@@ -68,7 +68,6 @@
               }
             });
             document.querySelectorAll('[name="transmission"] input').forEach(x => x.dispatchEvent(new Event('change')));
-            document.querySelector('#template').dispatchEvent(new Event('change'));
           };
 
           initQuery(dateFns, document.getElementById('query'));
@@ -95,7 +94,7 @@
 
       <div class="transmission" persist-fields-local="transmission">
         <span class="transmission-icon">⏧</span>
-        <div class="transmission-content">
+        <div class="transmission-content" hx-on:change="htmx.trigger('#template', 'change')">
           <h3>Electricity transmission</h3>
           <label>
             Preset
