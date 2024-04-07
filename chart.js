@@ -66,7 +66,7 @@ let mkSeriesConstructor = (dateFns, dateFnsTz, root, chart, xAxis, yAxis) => (na
     stackToNegative:   false,
     calculateTotals:   true,
     maskBullets:       false,
-    minBulletDistance: 25
+    minBulletDistance: 15
   });
   ret.columns.template.setAll({
     fillOpacity:    0.5,
@@ -257,7 +257,7 @@ let initSpotSeries = (dateFns, xAxis, series) => {
   series.columns.template.adapters.add('opacity', (_,target) =>
     0.3 + Math.abs(2*target.dataItem.dataContext.centsPerKWh / 40));
   
-    series.events.once("datavalidated", ev =>
+  series.events.once("datavalidated", ev =>
     xAxis.zoomToDates(dateFns.addHours(new Date(), -24),
                       new Date(Math.max(...ev.target.data.values.map(x => x.instant)))));
 };
@@ -268,10 +268,13 @@ let initTotals = (root, totals) => {
       locationY: 1,
       sprite:    am5.Label.new(root, {
         text:         "{valueYSum}",
-        scale:        0.6,
+        scale:        0.5,
         centerY:      am5.p100,
         centerX:      am5.p50,
-        populateText: true
+        populateText: true,
+        numberFormatter: am5.NumberFormatter.new(root, {
+          numberFormat: '#.0'
+        })
       })
     });
   });
