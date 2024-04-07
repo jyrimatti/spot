@@ -18,6 +18,7 @@
     <script crossorigin src="https://unpkg.com/htmx.org@1.9.6/dist/ext/client-side-templates.js"></script>
     <script crossorigin src="https://unpkg.com/@popperjs/core@2"></script>
     <script crossorigin src="https://unpkg.com/tippy.js@6"></script>
+    <script crossorigin src="https://unpkg.com/htmx-persist-fields/dist/persist-fields.js"></script>
     <script src="web/dist/sqlite-wasm-http-main.js"></script>
     <script src="sqlite.js"></script>
     <script src="chart.js"></script>
@@ -26,12 +27,20 @@
     <link crossorigin rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light.css" />
     <link rel="stylesheet" href="style.css" />
   </head>
-  <body hx-ext="client-side-templates,sqlite" hx-db="http:/spot.db">
+  <body hx-ext="client-side-templates,sqlite,persist-fields" hx-db="http:/spot.db">
     <template id="tablerow">
       {{#data}}
         <tr><td>{{formatInTimeZone (micro2milli instant) }}</td><td>{{round centsPerKWh}}</td></tr>
       {{/data}}
     </template>
+
+    <div style="display: none;" persist-fields-fragment="indexed">
+      <input name="visible" type="checkbox" checked value="spot" />
+      <input name="visible" type="checkbox" checked value="tax" />
+      <input name="visible" type="checkbox" checked value="transmission" />
+      <input name="visible" type="checkbox" checked value="nights" />
+      <input name="visible" type="checkbox" checked value="weekends" />
+    </div>
     
     <script>
       import('https://cdn.skypack.dev/date-fns@2.30.0').then(dateFns => {
@@ -43,9 +52,37 @@
           Handlebars.registerHelper('micro2milli', instant => instant*1000);
           Handlebars.registerHelper('round', x => x.toFixed(3));
 
+          window.presetChanged = val => {
+            document.getElementsByName('transmission')[0].reset();
+            val.split('|').forEach((value, index) => {
+              if (value == '') {
+                // no-op
+              } else if (index == 0) {
+                document.getElementsByName('price')[0].value = parseFloat(value);
+              } else if (index == 1) {
+                document.getElementsByName('night-price')[0].value = parseFloat(value);
+              } else if (index == 2) {
+                document.getElementsByName('night-start')[0].value = value;
+              } else if (index == 3) {
+                document.getElementsByName('night-end')[0].value = value;
+              }
+            });
+            document.querySelectorAll('[name="transmission"] input').forEach(x => x.dispatchEvent(new Event('change')));
+          };
+
           initQuery(dateFns, document.getElementById('query'));
           initTooltips(document);
-          window.init = initChart(dateFns, dateFnsTz);
+          window.init = initChart(dateFns,
+                                  dateFnsTz,
+                                  document.getElementsByName('price')[0],
+                                  document.getElementsByName('night-price')[0],
+                                  document.getElementsByName('night-start')[0],
+                                  document.getElementsByName('night-end')[0],
+                                  document.querySelector('[name="visible"][value="spot"]'),
+                                  document.querySelector('[name="visible"][value="tax"]'),
+                                  document.querySelector('[name="visible"][value="transmission"]'),
+                                  document.querySelector('[name="visible"][value="nights"]'),
+                                  document.querySelector('[name="visible"][value="weekends"]'));
 
           htmx.trigger('#query', 'change');
         });
@@ -53,7 +90,40 @@
     </script>
 
     <header>
-      <span class="current" hx-get="/current.html?tax=24" hx-trigger="load, every 60s"></span>
+      <span class="current" hx-get="/current.html?tax=24" hx-trigger="load, every 60s" title="Current spot price with tax"></span>
+
+      <div class="transmission" persist-fields-local="transmission">
+        <span class="transmission-icon">⏧</span>
+        <div class="transmission-content">
+          <h3>Electricity transmission</h3>
+          <label>
+            Preset
+            <select name="preset" readonly onchange="window.presetChanged(this.value)">
+              <option value="" selected></option>
+              <option value="8.41">Elenia Yleissiirto</option>
+              <option value="7.12|5.43|22:00|07:00">Elenia Yösiirto</option>
+            </select>
+          </label>
+          <form name="transmission">
+            <label>
+              Day price (c/kWh)
+              <input name="price" type="number" step="0.01" />
+            </label>
+            <label>
+              Night price (c/kWh)
+              <input name="night-price" type="number" step="0.01" />
+            </label>
+            <label>
+              Night pricing start
+              <input name="night-start" type="time" />
+            </label>
+            <label>
+              Night pricing end
+              <input name="night-end" type="time" />
+            </label>
+          </div>
+        </div>
+      </div>
       
       <select id="template" onchange="htmx.find('#query').value = this.value; htmx.trigger('#query', 'change');">
         <option data-baseInterval="hour"  value="SELECT * FROM spot WHERE instant > strftime('%s', 'now', '-1 months') ORDER BY instant DESC">Past month</option>
