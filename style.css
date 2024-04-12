@@ -75,7 +75,8 @@ th {
 }
 
 .transmission-icon {
-    font-size: 1.5em;
+    font-size: 1.3em;
+    line-height: 1em;
     padding: 0 0.2em;
     border: 1px dotted cadetblue;
     border-radius: 0.4em;
