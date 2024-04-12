@@ -74,6 +74,7 @@
           initTooltips(document);
           window.init = initChart(dateFns,
                                   dateFnsTz,
+                                  document.getElementsByName('eltax')[0],
                                   document.getElementsByName('price')[0],
                                   document.getElementsByName('night-price')[0],
                                   document.getElementsByName('night-start')[0],
@@ -98,20 +99,239 @@
           <h3>Electricity transmission</h3>
           <label>
             Preset
+            <!-- Prices collected 2024-04-13 -->
             <select name="preset" readonly onchange="window.presetChanged(this.value)">
               <option value="" selected></option>
-              <option value="8.41">Elenia Yleissiirto</option>
-              <option value="7.12|5.43|22:00|07:00">Elenia Yösiirto</option>
+
+              <option value="4.67">Alajärven sähkö Yleissiirto</option>
+              <option value="4.27|2.70|22:00|07:00">Alajärven sähkö Yösiirto</option>
+
+              <option value="1.93">Alva sähköverkko Yleissiirto</option>
+
+              <option value="5.07">Caruna Yleissiirto</option>
+              <option value="4.92|3.01|22:00|07:00">Caruna Yösiirto</option>
+
+              <option value="2.96">Caruna Espoo Yleissiirto</option>
+              <option value="2.88|1.54|22:00|07:00">Caruna Espoo Yösiirto</option>
+
+              <option value="5.62">Elenia Yleissiirto</option>
+              <option value="4.33|2.64|22:00|07:00">Elenia Yösiirto</option>
+
+              <option value="3.40">ESE-verkko Yleissiirto</option>
+              <option value="4.26|1.33|22:00|07:00">ESE-verkko Yösiirto</option>
+
+              <option value="5.32">Esse elektro-kraft A Yleissiirto</option>
+              <option value="4.94">Esse elektro-kraft B Yleissiirto</option>
+              <option value="4.94|3.87|22:00|07:00">Esse elektro-kraft Yösiirto</option>
+
+              <option value="3.28">Forssan verkkopalvelut Yleissiirto</option>
+              <option value="3.25|1.53|22:00|07:00">Forssan verkkopalvelut Yösiirto</option>
+
+              <option value="3.48">Haukiputaan sähköosuuskunta Yleissiirto</option>
+              <option value="2.74">Haukiputaan sähköosuuskunta Yleissiirto 2</option>
+              <option value="2.87|2.01|22:00|07:00">Haukiputaan sähköosuuskunta Yösiirto</option>
+
+              <option value="4.07">Helen sähköverkko Yleissiirto</option>
+              <option value="2.59|1.35|22:00|07:00">Helen sähköverkko Yösiirto</option>
+
+              <option value="3.34">Herrfors nät Yleissiirto</option>
+              <option value="2.91|1.61|22:00|07:00">Herrfors nät Yösiirto</option>
+
+              <option value="3.65">Iin energia Yleissiirto</option>
+              <option value="3.47|2.41|22:00|07:00">Iin energia Yösiirto</option>
+
+              <option value="3.94">Imatran seudun sähkönsiirto Yleissiirto</option>
+              <option value="4.30|1.44|22:00|07:00">Imatran seudun sähkönsiirto Yösiirto</option>
+
+              <option value="4.48">Jeppo kraft andelslag Yleissiirto</option>
+              <option value="3.94|2.87|22:00|07:00">Jeppo kraft andelslag Yösiirto</option>
+
+              <option value="4.90">Jylhän sähköosuuskunta Yleissiirto</option>
+              <option value="4.50|3.90|22:00|07:00">Jylhän sähköosuuskunta Yösiirto</option>
+
+              <option value="4.71">Järvisuomen energia Yleissiirto</option>
+              <option value="4.02|2.62|22:00|07:00">Järvisuomen energia Yösiirto</option>
+
+              <option value="5.43">Kajave Yleissiirto</option>
+              <option value="4.93|3.03|22:00|07:00">Kajave Yösiirto</option>
+
+              <option value="3.68">Kemin energia ja vesi Yleissiirto</option>
+              <option value="2.81">Kemin energia ja vesi Yleissiirto 2</option>
+              <option value="3.22|1.44|22:00|07:00">Kemin energia ja vesi Yösiirto</option>
+
+              <option value="3.06">Keminmaan energia Yleissiirto</option>
+              <option value="2.40">Keminmaan energia Yleissiirto 2</option>
+              <option value="3.25|1.79|22:00|07:00">Keminmaan energia Yösiirto</option>
+
+              <option value="2.30">Keravan energia Yleissiirto</option>
+              <option value="2.30|1.30|22:00|07:00">Keravan energia Yösiirto</option>
+
+              <option value="5.42">Keuruun sähkö Yleissiirto</option>
+              <option value="5.47|2.82|22:00|07:00">Keuruun sähkö Yösiirto</option>
+
+              <option value="4.10">Koillis-Lapin sähkö Yleissiirto</option>
+              <option value="3.89|2.07|22:00|07:00">Koillis-Lapin sähkö Yösiirto</option>
+
+              <option value="4.35">Koillis-Satakunnan sähkö Yleissiirto</option>
+              <option value="5.36|2.66|22:00|07:00">Koillis-Satakunnan sähkö Yösiirto</option>
+
+              <option value="5.05">Kokemäen sähkö Yleissiirto</option>
+
+              <option value="4.30">Kokkolan energiaverkot Yleissiirto</option>
+              <option value="4.30|1.92|22:00|07:00">Kokkolan energiaverkot Yösiirto</option>
+
+              <option value="4.86">Kronoby elverk Yleissiirto</option>
+              <option value="4.18|2.76|22:00|07:00">Kronoby elverk Yösiirto</option>
+
+              <option value="3.76">KSS verkko Yleissiirto</option>
+              <option value="3.04|1.38|22:00|07:00">KSS verkko Yösiirto</option>
+
+              <option value="3.17">Kuopion sähköverkko Yleissiirto</option>
+              <option value="2.25|1.34|22:00|07:00">Kuopion sähköverkko Yösiirto</option>
+
+              <option value="3.70">Kuoreveden sähkö Yleissiirto</option>
+              <option value="3.70|1.55|22:00|07:00">Kuoreveden sähkö Yösiirto</option>
+
+              <option value="2.60">Kymenlaakson sähköverkko Yleissiirto</option>
+              <option value="2.58|0.89|22:00|07:00">Kymenlaakson sähköverkko Yösiirto</option>
+
+              <option value="4.44">Köyliön-Säkylän sähkö Yleissiirto</option>
+              <option value="4.57|2.93|22:00|07:00">Köyliön-Säkylän sähkö Yösiirto</option>
+
+              <option value="4.42">Lammaisten energia Yleissiirto</option>
+              <option value="4.70|2.53|22:00|07:00">Lammaisten energia Yösiirto</option>
+
+              <option value="5.20">Lankosken sähkö Yleissiirto</option>
+              <option value="4.88|2.72|22:00|07:00">Lankosken sähkö Yösiirto</option>
+
+              <option value="4.09">Lappeenrannan energiaverkot Yleissiirto</option>
+              <option value="3.38|2.19|22:00|07:00">Lappeenrannan energiaverkot Yösiirto</option>
+
+              <option value="3.47">LE-sähköverkko Yleissiirto</option>
+              <option value="3.97|1.67|22:00|07:00">LE-sähköverkko Yösiirto</option>
+
+              <option value="4.8">Lehtimäen sähkö Yleissiirto</option>
+              <option value="4.2|2.9|22:00|07:00">Lehtimäen sähkö Yösiirto</option>
+
+              <option value="4.35">Leppäkosken sähkö Yleissiirto</option>
+              <option value="4.65|2.70|22:00|07:00">Leppäkosken sähkö Yösiirto</option>
+
+              <option value="5.90">Muonion sähköosuuskunta Yleissiirto</option>
+              <option value="5.94|4.05|22:00|07:00">Muonion sähköosuuskunta Yösiirto</option>
+
+              <option value="4.20">Naantalin energia Yleissiirto</option>
+
+              <option value="4.34">Nivos energia Yleissiirto</option>
+              <option value="4.34|2.84|22:00|07:00">Nivos energia Yösiirto</option>
+
+              <option value="2.97">Nurmijärven sähköverkko Yleissiirto</option>
+              <option value="2.56|1.79|22:00|06:00">Nurmijärven sähköverkko Yösiirto</option>
+
+              <option value="6.87">Nykarleby kraftverk Yleissiirto</option>
+
+              <option value="2.81">Oulun energia siirto ja jakelu Yleissiirto</option>
+              <option value="2.37|1.45|22:00|07:00">Oulun energia siirto ja jakelu Yösiirto</option>
+
+              <option value="2.48">Oulun seudun sähkö Yleissiirto</option>
+
+              <option value="4.83">Outokummun energia Yleissiirto</option>
+              <option value="4.84|2.29|22:00|07:00">Outokummun energia Yösiirto</option>
+
+              <option value="4.33">Paneliankosken voima Yleissiirto</option>
+
+              <option value="3.40">Parikkalan valo Yleissiirto</option>
+              <option value="3.40|2.00|22:00|06:00">Parikkalan valo Yösiirto</option>
+
+              <option value="4.841">PKS sähkösiirto Yleissiirto</option>
+              <option value="5.300|2.069|22:00|07:00">PKS sähkösiirto Yösiirto</option>
+
+              <option value="2.95">Pori energia sähköverkot Yleissiirto</option>
+              <option value="2.95|1.50|22:00|07:00">Pori energia sähköverkot Yösiirto</option>
+
+              <option value="2.90">Porvoon sähköverkko Yleissiirto</option>
+              <option value="2.90|1.70|22:00|07:00">Porvoon sähköverkko Yösiirto</option>
+
+              <option value="5.35">Raahen energia Yleissiirto</option>
+              <option value="4.90|2.45|22:00|07:00">Raahen energia Yösiirto</option>
+
+              <option value="2.86">Rantakairan sähkö Yleissiirto</option>
+              <option value="2.60|1.36|22:00|07:00">Rantakairan sähkö Yösiirto</option>
+
+              <option value="2.80">Rauman energia sähköverkko Yleissiirto</option>
+              <option value="3.90|1.74|22:00|07:00">Rauman energia sähköverkko Yösiirto</option>
+
+              <option value="2.25">Rovaniemen verkko Yleissiirto</option>
+              <option value="2.25|1.04|22:00|07:00">Rovaniemen verkko Yösiirto</option>
+
+              <option value="4.30">Sallila sähkönsiirto Yleissiirto</option>
+
+              <option value="4.85">Savon voima Yleissiirto</option>
+              <option value="6.15|2.67|22:00|07:00">Savon voima Yösiirto</option>
+
+              <option value="3.21">Seiverkot Yleissiirto</option>
+              <option value="2.69|1.69|22:00|07:00">Seiverkot Yösiirto</option>
+
+              <option value="2.10">Sipoon energia Yleissiirto</option>
+              <option value="2.00|1.30|22:00|07:00">Sipoon energia Yösiirto</option>
+
+              <option value="4.14">Tammisaaren energia Yleissiirto</option>
+              <option value="4.14|2.51|22:00|07:00">Tammisaaren energia Yösiirto</option>
+
+              <option value="2.9264">Tampereen sähköverkko Yleissiirto</option>
+              <option value="3.1000|1.3268|22:00|07:00">Tampereen sähköverkko Yösiirto</option>
+
+              <option value="4.38">Tenergia Yleissiirto</option>
+
+              <option value="3.534">Tornion energia Yleissiirto</option>
+              <option value="3.534|1.848|22:00|07:00">Tornion energia Yösiirto</option>
+
+              <option value="3.05">Tornionlaakson sähkö Yleissiirto</option>
+              <option value="3.83|1.52|22:00|07:00">Tornionlaakson sähkö Yösiirto</option>
+
+              <option value="2.88">Tunturiverkko Yleissiirto</option>
+
+              <option value="1.75">Turku energia sähköverkot Yleissiirto</option>
+              <option value="1.71|0.82|22:00|07:00">Turku energia sähköverkot Yösiirto</option>
+
+              <option value="4.28">Vaasan sähköverkko Yleissiirto</option>
+              <option value="3.82|1.29|22:00|07:00">Vaasan sähköverkko Yösiirto</option>
+
+              <option value="4.00">Vakka-Suomen voima Yleissiirto</option>
+              <option value="4.00|2.00|22:00|07:00">Vakka-Suomen voima Yösiirto</option>
+
+              <option value="4.06">Valkeakosken energia Yleissiirto</option>
+              <option value="3.95|1.86|22:00|07:00">Valkeakosken energia Yösiirto</option>
+
+              <option value="2.90">Vantaan energia sähköverkot Yleissiirto</option>
+              <option value="3.20|1.40|22:00|07:00">Vantaan energia sähköverkot Yösiirto</option>
+
+              <option value="4.66">Vatajankoski sähkö Yleissiirto</option>
+              <option value="4.85|2.91|22:00|07:00">Vatajankoski sähkö Yösiirto</option>
+
+              <option value="4.00">Verkko korpela Yleissiirto</option>
+              <option value="3.56|1.84|22:00|07:00">Verkko korpela Yösiirto</option>
+
+              <option value="4.821">Vetelin energia Yleissiirto</option>
+
+              <option value="4.34">Vimpelin voima Yleissiirto</option>
+              <option value="3.92|2.76|22:00|07:00">Vimpelin voima Yösiirto</option>
+
+              <option value="4.14">Äänekosken energia Yleissiirto</option>
+              <option value="3.84|1.83|22:00|07:00">Äänekosken energia Yösiirto</option>
             </select>
+          </label>
+          <label>
+            Electricity tax (c/kWh)
+            <input name="eltax" type="number" step="0.00001" value="2.79372" />
           </label>
           <form name="transmission">
             <label>
               Day price (c/kWh)
-              <input name="price" type="number" step="0.01" />
+              <input name="price" type="number" step="0.0001" />
             </label>
             <label>
               Night price (c/kWh)
-              <input name="night-price" type="number" step="0.01" />
+              <input name="night-price" type="number" step="0.0001" />
             </label>
             <label>
               Night pricing start

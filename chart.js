@@ -186,7 +186,7 @@ let mkNightRanges = (dateFns, dateFnsTz, xAxis, startTime, endTime) => interval 
   }
 };
 
-let initData = (dateFns, dateFnsTz, mainSeries, taxSeries, transmissionSeries, totals) => (data, dayPrice, nightPrice, nightStart, nightEnd) => {
+let initData = (dateFns, dateFnsTz, mainSeries, taxSeries, transmissionSeries, totals) => (data, eltax, dayPrice, nightPrice, nightStart, nightEnd) => {
   data = data.sort((a,b) => a.instant - b.instant);
   
   mainSeries.data.setAll(data);
@@ -201,9 +201,9 @@ let initData = (dateFns, dateFnsTz, mainSeries, taxSeries, transmissionSeries, t
     if (nightPrice && nightStart && nightEnd) {
       let minutes = dateFns.getHours(new Date(x.instant)) * 60 +
                     dateFns.getMinutes(new Date(x.instant));
-      return {...x, centsPerKWh: minutes >= nightStartMinutes || minutes < nightEndMinutes ? nightPrice : dayPrice};
+      return {...x, centsPerKWh: (minutes >= nightStartMinutes || minutes < nightEndMinutes ? nightPrice : dayPrice) + eltax};
     } else {
-      return {...x, centsPerKWh: (dayPrice || 0)};
+      return {...x, centsPerKWh: dayPrice ? dayPrice + eltax : 0};
     }
   }));
   
@@ -285,7 +285,7 @@ let mkLegend = (root, chart) =>
     layout: root.verticalLayout
   }));
 
-let initChart = (dateFns, dateFnsTz, dayPrice, nightPrice, nightStart, nightEnd, spotVisible, taxVisible, transmissionVisible, nightVisible, weekendVisible) => {
+let initChart = (dateFns, dateFnsTz, eltax, dayPrice, nightPrice, nightStart, nightEnd, spotVisible, taxVisible, transmissionVisible, nightVisible, weekendVisible) => {
   let root = mkRoot();
   let chart = mkChart(root);
   let yAxis = mkYAxis(root, chart);
@@ -342,7 +342,7 @@ let initChart = (dateFns, dateFnsTz, dayPrice, nightPrice, nightStart, nightEnd,
     if (baseInterval) {
       xAxis.set('baseInterval', { timeUnit: baseInterval, count: 1 });
     }
-    initData(dateFns, dateFnsTz, spotSeries, taxSeries, transmissionSeries, totals)(data, parseFloat(dayPrice.value), parseFloat(nightPrice.value), nightStart.value, nightEnd.value);
+    initData(dateFns, dateFnsTz, spotSeries, taxSeries, transmissionSeries, totals)(data, parseFloat(eltax.value), parseFloat(dayPrice.value), parseFloat(nightPrice.value), nightStart.value, nightEnd.value);
     initRanges(data, baseInterval == 'hour', nightStart.value || '22:00', nightEnd.value || '07:00');
   };
 };
