@@ -1,3 +1,3 @@
 #!/bin/sh
 
-export ENTSOE_TOKEN="$(cat .spot-token)"
+export ENTSOE_TOKEN="$(cat "${CREDENTIALS_DIRECTORY:-.}/.spot-token")"
