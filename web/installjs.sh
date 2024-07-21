@@ -3,5 +3,5 @@
 set -eu
 
 echo '{}' > package.json
-npm install --save-dev webpack webpack-cli
+npm install --save-dev http-server webpack webpack-cli
 npm install --save sqlite-wasm-http
