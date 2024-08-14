@@ -7,19 +7,66 @@ let mkRoot = () => {
   return root;
 };
 
-let mkChart = root =>
-  root.container.children.push(
+let mkChart = (root, dateFns, dateFnsTz) => {
+  let chart = root.container.children.push(
     am5xy.XYChart.new(root, {
       panX:       true,
       panY:       false,
       wheelY:     "zoomX",
       pinchZoomX: true,
       layout:     root.verticalLayout,
+      paddingTop: 0,
       scrollbarX: am5xy.XYChartScrollbar.new(root, {
         orientation: 'horizontal'
-      })
+      }),
+      maxTooltipDistance: -1
     })
   );
+
+  let tooltip = am5.Tooltip.new(root, {
+    pointerOrientation: "down",
+    dy: -25
+  });
+  tooltip.get("background").setAll({
+    stroke: am5.color('#000000'),
+    strokeOpacity: 0.2,
+    fill: am5.color('#ffffff'),
+    fillOpacity: 0.8
+  });
+  tooltip.label.adapters.add("text", function(text) {
+    let texts = [];
+    chart.series.each(function(series, i) {
+      var tooltipDataItem = series.get("tooltipDataItem");
+      if (tooltipDataItem) {
+        let name = series.get("name");
+        if (i == 0) {
+          texts.push("[fontFamily: monospace fontSize: 9px verticalAlign: super]" +
+                     dateFnsTz.formatInTimeZone(new Date(tooltipDataItem.get("valueX")), 'Europe/Helsinki', "yyyy-MM-dd HH:mm") +
+                     " - " +
+                     dateFnsTz.formatInTimeZone(dateFns.addHours(new Date(tooltipDataItem.get("valueX")), 1), 'Europe/Helsinki', "HH:mm") +
+                    "[fontFamily: monospace fontSize: 9px]");
+        }
+        if (series.isVisible()) {
+          let value = tooltipDataItem.get("valueY" + (name == 'total' ? "Sum" : "")).toFixed(2);
+          texts.push((name == 'total' ? "[/][fontFamily: monospace fontSize: 9px verticalAlign: sub]" : "") +
+                    name + " ".repeat(19-name.length) + "" + (value < 10 ? "  " : value < 100 ? " " : "") + value + " c/kWh");
+        }
+      }
+    });
+    return texts.join("\n") + "[/]";
+  });
+  chart.plotContainer.setAll({
+    tooltip: tooltip,
+    tooltipText: " ",
+    tooltipPosition: "pointer"
+  });
+
+  let cursor = chart.set("cursor", am5xy.XYCursor.new(root, {}));
+  cursor.lineX.set("visible", false);
+  cursor.lineY.set("visible", false);
+  
+  return chart;
+}
 
 let mkYAxis = (root, chart) => {
   let yAxis = chart.yAxes.push(
@@ -66,14 +113,17 @@ let mkSeriesConstructor = (dateFns, dateFnsTz, root, chart, xAxis, yAxis) => (na
     stackToNegative:   false,
     calculateTotals:   true,
     maskBullets:       false,
-    minBulletDistance: 15
+    minBulletDistance: 15,
   });
   ret.columns.template.setAll({
     fillOpacity:    0.5,
     cornerRadiusTL: 2,
     cornerRadiusTR: 2,
-    tooltipText:    "{centsPerKWh} c/kWh",
-    tooltipY:       am5.percent(0),
+    tooltip:        am5.Tooltip.new(root, {
+      pointerOrientation: 'up',
+      dy: 25
+    }),
+    tooltipText:    "[fontFamily: monospace fontSize: 9px]" + name + ": {centsPerKWh} c/kWh",
     width:          am5.percent(90)
   });
   ret.columns.template.states.create("hover", {
@@ -87,15 +137,6 @@ let mkSeriesConstructor = (dateFns, dateFnsTz, root, chart, xAxis, yAxis) => (na
       store.dispatchEvent(new CustomEvent("change"));
     });
   }
-
-  ret.columns.template.adapters.add("tooltipText", (text, target) => {
-    let instant = target.dataItem.dataContext.instant;
-    return dateFnsTz.formatInTimeZone(new Date(instant), 'Europe/Helsinki', "yyyy-MM-dd HH:mm") +
-            " - " +
-            dateFnsTz.formatInTimeZone(dateFns.addHours(new Date(instant), 1), 'Europe/Helsinki', "HH:mm") +
-            "\n" +
-            text;
-  });
   
   return ret;
 };
@@ -133,14 +174,6 @@ let mkCurrentTimeRange = (dateFns, dateFnsTz, root, chart, xAxis) => data => {
       tooltip:       am5.Tooltip.new(root, {}),
       tooltipY:      0,
       showTooltipOn: "always"
-  });
-  axisFill.get("tooltip").adapters.add("bounds", () => chart.plotContainer.globalBounds());
-
-  axisFill.adapters.add("tooltipText", (text, target) => {
-    let instant = target.dataItem.get('value');
-    let price = () => data.findLast(x => x.instant <= instant).centsPerKWh;
-    return dateFnsTz.formatInTimeZone(new Date(instant), 'Europe/Helsinki', "yyyy-MM-dd HH:mm") +
-          (data.length == 0 ? '' : "\n" + (price() > 0 ? price().toFixed(2) + " + " + (price()*0.24).toFixed(2) + " = " + (price()*1.24).toFixed(2) : price()) + " c/kwh");
   });
   return currentTime;
 };
@@ -186,27 +219,65 @@ let mkNightRanges = (dateFns, dateFnsTz, xAxis, startTime, endTime) => interval 
   }
 };
 
-let initData = (dateFns, dateFnsTz, mainSeries, taxSeries, transmissionSeries, totals) => (data, eltax, dayPrice, nightPrice, nightStart, nightEnd) => {
+let findVAT = (data, row) => data.find(y => y.start.getTime() <= row.instant && y.end.getTime() > row.instant).percent / 100;
+let findPrice = (data, row) => data.find(y => y.start.getTime() <= row.instant && y.end.getTime() > row.instant).centsPerKWh;
+
+let parseMinutes = duration => duration.split(':').map(x => parseInt(x)).reduce((a,b) => a*60 + b);
+
+let initData = (dateFns, dateFnsTz, mainSeries, spotVATSeries, transferSeries, transferVATSeries, electricityTaxSeries, electricityTaxVATSeries, totals, spotVAT, transferVAT, electricityTax) => (data, dayPrice, nightPrice, nightStart, nightEnd) => {
   data = data.sort((a,b) => a.instant - b.instant);
   
   mainSeries.data.setAll(data);
 
-  taxSeries.data.setAll(data.map(x => {
-    return {...x, centsPerKWh: x.centsPerKWh > 0 ? x.centsPerKWh*0.24 : 0};
+  spotVATSeries.data.setAll(data.map(x => {
+    let currentVAT = findVAT(spotVAT, x);
+    return {...x, centsPerKWh: x.centsPerKWh > 0 ? x.centsPerKWh*currentVAT : 0};
   }));
 
-  let nightStartMinutes = nightStart.split(':').map(x => parseInt(x)).reduce((a,b) => a*60 + b);
-  let nightEndMinutes   = nightEnd.split(':').map(x => parseInt(x)).reduce((a,b) => a*60 + b);
-  transmissionSeries.data.setAll(data.map(x => {
+  electricityTaxSeries.data.setAll(data.map(x => {
+    let currentVAT = findVAT(transferVAT, x);
+    let currentElectricityTax = findPrice(electricityTax, x);
+    let currentElectricityTaxExcludingVAT = currentElectricityTax/(1 + currentVAT);
+    return {...x, centsPerKWh: currentElectricityTaxExcludingVAT};
+  }));
+
+  electricityTaxVATSeries.data.setAll(data.map(x => {
+    let currentVAT = findVAT(transferVAT, x);
+    let currentElectricityTax = findPrice(electricityTax, x);
+    let currentElectricityTaxExcludingVAT = currentElectricityTax/(1 + currentVAT);
+    return {...x, centsPerKWh: currentElectricityTaxExcludingVAT * currentVAT};
+  }));
+
+  let nightStartMinutes = parseMinutes(nightStart);
+  let nightEndMinutes   = parseMinutes(nightEnd);
+  transferSeries.data.setAll(data.map(x => {
+    let currentVAT = findVAT(transferVAT, x);
+    var price;
     if (nightPrice && nightStart && nightEnd) {
       let minutes = dateFns.getHours(new Date(x.instant)) * 60 +
                     dateFns.getMinutes(new Date(x.instant));
-      return {...x, centsPerKWh: (minutes >= nightStartMinutes || minutes < nightEndMinutes ? nightPrice : dayPrice) + eltax};
+      price = (minutes >= nightStartMinutes || minutes < nightEndMinutes ? nightPrice : dayPrice);
     } else {
-      return {...x, centsPerKWh: dayPrice ? dayPrice + eltax : 0};
+      price = dayPrice;
     }
+    let priceExludingVAT = price/(1 + currentVAT);
+    return {...x, centsPerKWh: priceExludingVAT};
   }));
-  
+
+  transferVATSeries.data.setAll(data.map(x => {
+    let currentVAT = findVAT(transferVAT, x);
+    var price;
+    if (nightPrice && nightStart && nightEnd) {
+      let minutes = dateFns.getHours(new Date(x.instant)) * 60 +
+                    dateFns.getMinutes(new Date(x.instant));
+      price = (minutes >= nightStartMinutes || minutes < nightEndMinutes ? nightPrice : dayPrice);
+    } else {
+      price = dayPrice;
+    }
+    let priceExludingVAT = price/(1 + currentVAT);
+    return {...x, centsPerKWh: priceExludingVAT * currentVAT};
+  }));
+
   totals.data.setAll(data.map(x => {
     return {...x, centsPerKWh: 0};
   }));
@@ -224,17 +295,19 @@ let mkRangeInitializer = (dateFns, dateFnsTz, root, chart, xAxis, showWeekendsF,
     });
   }, 60000);
 
-  let interval = {
-    start: Math.min(...data.map(x => x.instant)),
-    end:   Math.max(...data.map(x => x.instant))
-  };
+  if (data.length > 0) {
+    let interval = {
+      start: Math.min(...data.map(x => x.instant)),
+      end:   Math.max(...data.map(x => x.instant))
+    };
 
-  if (includeNightsAndWeekends && showWeekendsF()) {
-    mkWeekendRanges(dateFns, root, xAxis)(interval);
-  }
+    if (includeNightsAndWeekends && showWeekendsF()) {
+      mkWeekendRanges(dateFns, root, xAxis)(interval);
+    }
 
-  if (includeNightsAndWeekends && showNightsF()) {
-    mkNightRanges(dateFns, dateFnsTz, xAxis, nightStart, nightEnd)(interval);
+    if (includeNightsAndWeekends && showNightsF()) {
+      mkNightRanges(dateFns, dateFnsTz, xAxis, nightStart, nightEnd)(interval);
+    }
   }
 };
 
@@ -285,39 +358,113 @@ let mkLegend = (root, chart) =>
     layout: root.verticalLayout
   }));
 
-let initChart = (dateFns, dateFnsTz, eltax, dayPrice, nightPrice, nightStart, nightEnd, spotVisible, taxVisible, transmissionVisible, nightVisible, weekendVisible) => {
+let initChart = (dateFns, dateFnsTz, dayPrice, nightPrice, nightStart, nightEnd, spotVisible, VATVisible, transferVisible, electricityTaxVisible, nightVisible, weekendVisible, spotVAT, transferVAT, electricityTax) => {
   let root = mkRoot();
-  let chart = mkChart(root);
+  let chart = mkChart(root, dateFns, dateFnsTz);
   let yAxis = mkYAxis(root, chart);
   let xAxis = mkXAxis(root, chart);
 
   let mkSeries = mkSeriesConstructor(dateFns, dateFnsTz, root, chart, xAxis, yAxis);
-  let spotSeries         = mkSeries("Spot", spotVisible);
-  let taxSeries          = mkSeries("Tax 24%", taxVisible);
-  let transmissionSeries = mkSeries("Transmission", transmissionVisible);
-  let totals             = mkSeries("totals");
+  let spotSeries              = mkSeries("Spot", spotVisible);
+  let spotVATSeries           = mkSeries("Spot VAT", VATVisible);
+  let transferSeries          = mkSeries("Transfer", transferVisible);
+  let transferVATSeries       = mkSeries("Transfer VAT", VATVisible);
+  let electricityTaxSeries    = mkSeries("Electricity tax", electricityTaxVisible);
+  let electricityTaxVATSeries = mkSeries("Electricity tax VAT", VATVisible);
+  let totals                  = mkSeries("total");
   
   initSpotSeries(dateFns, xAxis, spotSeries);
-  transmissionSeries.setAll({
+  
+  transferSeries.setAll({
     fill: am5.color("#cfe2f3")
   });
-  transmissionSeries.columns.template.setAll({
-    fillOpacity: 0.2
+  transferSeries.columns.template.setAll({
+    fillOpacity: 0.4
   });
+
+  electricityTaxSeries.setAll({
+    fill: am5.color("#c0e0ba")
+  });
+  electricityTaxSeries.columns.template.setAll({
+    fillOpacity: 0.4
+  });
+
+  spotVATSeries.set('fill', am5.Color.lighten(spotSeries.get('fill'), 0.45));
+  transferVATSeries.set('fill', am5.Color.lighten(transferSeries.get('fill'), 0.35));
+  electricityTaxVATSeries.set('fill', am5.Color.lighten(electricityTaxSeries.get('fill'), 0.45));
+
   initTotals(root, totals);
 
   if (!spotVisible.checked) {
     spotSeries.hide();
   }
-  if (!taxVisible.checked) {
-    taxSeries.hide();
+  if (!VATVisible.checked) {
+    spotVATSeries.hide();
+    transferVATSeries.hide();
+    electricityTaxVATSeries.hide();
   }
-  if (!transmissionVisible.checked) {
-    transmissionSeries.hide();
+  if (!transferVisible.checked) {
+    transferSeries.hide();
   }
 
+  let VATSeries = am5xy.ColumnSeries.new(root, { 
+    name:             'VAT',
+    valueYField:       "centsPerKWh",
+    valueXField:       "instant",
+    xAxis:             xAxis,
+    yAxis:             yAxis,
+    stacked:           true
+  });
+
+  spotSeries.on("visible", visible => {
+    if (visible) {
+      if (VATSeries.isVisible()) {
+        spotVATSeries.show();
+      }
+    } else {
+      spotVATSeries.hide();
+    }
+  });
+  transferSeries.on("visible", visible => {
+    if (visible) {
+      if (VATSeries.isVisible()) {
+        transferVATSeries.show();
+      }
+    } else {
+      transferVATSeries.hide();
+    }
+  });
+  electricityTaxSeries.on("visible", visible => {
+    if (visible) {
+      if (VATSeries.isVisible()) {
+        electricityTaxVATSeries.show();
+      }
+    } else {
+      electricityTaxVATSeries.hide();
+    }
+  });
+
+  VATSeries.on("visible", visible => {
+    if (visible) {
+      if (spotSeries.isVisible()) {
+        spotVATSeries.show();
+      }
+      if (transferSeries.isVisible()) {
+        transferVATSeries.show();
+      }
+      if (electricityTaxSeries.isVisible()) {
+        electricityTaxVATSeries.show();
+      }
+    } else {
+      spotVATSeries.hide();
+      transferVATSeries.hide();
+      electricityTaxVATSeries.hide();
+    }
+  });
+  chart.series.push(VATSeries);
+
   let legend = mkLegend(root, chart);
-  legend.data.setAll([spotSeries, taxSeries, transmissionSeries]);
+  legend.data.setAll([spotSeries, VATSeries, transferSeries, electricityTaxSeries]);
 
   let showNightsButton = mkButton(root, legend, "Show/hide nights", '#0000ff', nightVisible.checked);
   let showWeekendsButton = mkButton(root, legend, "Show/hide weekends", '#000000', weekendVisible.checked);
@@ -342,7 +489,7 @@ let initChart = (dateFns, dateFnsTz, eltax, dayPrice, nightPrice, nightStart, ni
     if (baseInterval) {
       xAxis.set('baseInterval', { timeUnit: baseInterval, count: 1 });
     }
-    initData(dateFns, dateFnsTz, spotSeries, taxSeries, transmissionSeries, totals)(data, parseFloat(eltax.value), parseFloat(dayPrice.value), parseFloat(nightPrice.value), nightStart.value, nightEnd.value);
+    initData(dateFns, dateFnsTz, spotSeries, spotVATSeries, transferSeries, transferVATSeries, electricityTaxSeries, electricityTaxVATSeries, totals, spotVAT(), transferVAT(), electricityTax())(data, parseFloat(dayPrice.value), parseFloat(nightPrice.value), nightStart.value, nightEnd.value);
     initRanges(data, baseInterval == 'hour', nightStart.value || '22:00', nightEnd.value || '07:00');
   };
 };

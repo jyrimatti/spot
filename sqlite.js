@@ -240,7 +240,9 @@ And include in your HTML:
                                                 .then(() => db.close())
                                                 .then(() => httpBackend.close());
 
-                                            swapAndSettle(result, elt, responseInfo);
+                                            if (responseInfo.target) {
+                                                swapAndSettle(result, elt, responseInfo);
+                                            }
                                         }
                                     }}));
                         })
