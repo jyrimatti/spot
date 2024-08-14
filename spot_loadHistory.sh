@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell --pure --keep ENTSOE_TOKEN -I channel:nixos-23.11-small -i dash -p curl nix
+#! nix-shell --pure --keep ENTSOE_TOKEN -I channel:nixos-24.05-small -i dash -p curl nix
 set -eu
 
 cat DAY_AHEAD_PRICES_201501010000-201601010000.xml | ./spot_parse.sh | ./spot_insert.sh
