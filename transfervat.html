@@ -1,0 +1,12 @@
+#! /usr/bin/env nix-shell
+#! nix-shell -i dash -I channel:nixos-24.05-small -p jq
+set -eu
+
+. ./util.sh
+
+res=$(./transfervat.sh $(getParameters) 2>&1) || (echo -e "Status: 400\n\n$res" && exit 1)
+
+echo 'Content-Type: text/html'
+echo 'Cache-Control: max-age=60, must-revalidate'
+echo ''
+echo "$res" | jq -r '"<html><body><table><tr><th>startTime</th><th>endTime</th><th>percent</th></tr>" + (map("<tr><td>" + .startTime + "</td><td>" + .endTime + "</td><td>" + .percent + "</td></tr>") | join("")) + "</table></body></html>"'

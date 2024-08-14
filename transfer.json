@@ -1,0 +1,12 @@
+#! /usr/bin/env nix-shell
+#! nix-shell -i dash -I channel:nixos-24.05-small -p dash
+set -eu
+
+. ./util.sh
+
+res=$(./transfer.sh $(getParameters) 2>&1) || (echo -e "Status: 400\n\n$res" && exit 1)
+
+echo 'Content-Type: application/json'
+echo 'Cache-Control: max-age=60, must-revalidate'
+echo ''
+echo "$res"
