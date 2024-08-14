@@ -9,10 +9,11 @@
             "csv": {
                 "type": "array",
                 "minItems": 2,
-                "maxItems": 2,
+                "maxItems": 7,
                 "items": {
                     "anyOf": [{"type": "string", "format": "date-time"},
-                            {"type": "number", "format": "float"}]
+                              {"type": "number", "format": "float"},
+                              {"type": "string"}]
                 }
             },
             "json": {
@@ -23,10 +24,22 @@
                         "format": "date-time",
                         "description": "Starting time for the price"
                     },
+                    "endTime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "End time for the price"
+                    },
                     "centsPerKWh": {
                         "type": "number",
                         "format": "float",
                         "description": "The price"
+                    },
+                    "percent": {
+                        "type": "number",
+                        "format": "float",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "description": "Percentage"
                     }
                 }
             },
@@ -59,7 +72,7 @@
                 {
                     "name": "tax",
                     "in": "query",
-                    "description": "included tax percent (0-100) (default: 0)",
+                    "description": "included tax percent (0-100) (default: VAT at current time)",
                     "schema": {
                         "type": "number",
                         "minimum": 0,
@@ -162,7 +175,7 @@
                 {
                     "name": "tax",
                     "in": "query",
-                    "description": "included tax percent (0-100) (default: 0)",
+                    "description": "included tax percent (0-100) (default: VAT at specific time)",
                     "schema": {
                         "type": "number",
                         "minimum": 0,
@@ -230,11 +243,227 @@
                 {
                     "name": "tax",
                     "in": "query",
-                    "description": "included tax percent (0-100) (default: 0)",
+                    "description": "included tax percent (0-100) (default: VAT at specific time)",
                     "schema": {
                         "type": "number",
                         "minimum": 0,
                         "maximum": 100
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/json"
+                                    }
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/csv"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/html"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/transfer.{format}": {
+            "get": {
+                "summary": "Returns transfer prices.",
+                "parameters": [{
+                    "name": "format",
+                    "in": "path",
+                    "required": true,
+                    "description": "output format",
+                    "schema": {
+                        "enum": ["json", "csv", "html"]
+                    }
+                },{
+                    "name": "tz",
+                    "in": "query",
+                    "description": "output time zone (default: Europe/Helsinki)",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "tax",
+                    "in": "query",
+                    "description": "included VAT percent (0-100) (default: VAT at specific time)",
+                    "schema": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/json"
+                                    }
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/csv"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/html"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/electricitytax.{format}": {
+            "get": {
+                "summary": "Returns electricity tax in Finland.",
+                "parameters": [{
+                    "name": "format",
+                    "in": "path",
+                    "required": true,
+                    "description": "output format",
+                    "schema": {
+                        "enum": ["json", "csv", "html"]
+                    }
+                },{
+                    "name": "tz",
+                    "in": "query",
+                    "description": "output time zone (default: Europe/Helsinki)",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "tax",
+                    "in": "query",
+                    "description": "included VAT percent (0-100) (default: VAT at specific time)",
+                    "schema": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/json"
+                                    }
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/csv"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/html"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/spotvat.{format}": {
+            "get": {
+                "summary": "Returns spot VAT in Finland.",
+                "parameters": [{
+                    "name": "format",
+                    "in": "path",
+                    "required": true,
+                    "description": "output format",
+                    "schema": {
+                        "enum": ["json", "csv", "html"]
+                    }
+                },{
+                    "name": "tz",
+                    "in": "query",
+                    "description": "output time zone (default: Europe/Helsinki)",
+                    "schema": {
+                        "type": "string"
+                    }
+                }],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/json"
+                                    }
+                                }
+                            },
+                            "text/csv": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/csv"
+                                    }
+                                }
+                            },
+                            "text/html": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/html"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/transfervat.{format}": {
+            "get": {
+                "summary": "Returns transfer VAT in Finland.",
+                "parameters": [{
+                    "name": "format",
+                    "in": "path",
+                    "required": true,
+                    "description": "output format",
+                    "schema": {
+                        "enum": ["json", "csv", "html"]
+                    }
+                },{
+                    "name": "tz",
+                    "in": "query",
+                    "description": "output time zone (default: Europe/Helsinki)",
+                    "schema": {
+                        "type": "string"
                     }
                 }],
                 "responses": {
