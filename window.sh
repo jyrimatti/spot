@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -i dash -I channel:nixos-24.05-small -p sqlite getoptions coreutils
+#! nix-shell -i dash -I channel:nixos-24.05-small -p sqlite getoptions coreutils jq miller
 set -eu
 
 NIGHT_DELTA=0
@@ -8,6 +8,8 @@ NIGHT_END=7
 FROM="$(date -u +%Y-%m-%d'T'%H:%M:%S'Z')"
 TZ='Europe/Helsinki'
 TAX='null'
+
+DB="${DB:-./spot.db}"
 
 . ./util.sh
 
@@ -31,11 +33,10 @@ if [ $# != 0 ]; then usage; exit 1; fi
 if [ -z "$WINDOW" ]; then usage; exit 1; fi
 
 export TZ
-offset=$(date +%:z)
-tax="SELECT 1 + percent/100.0 FROM (SELECT coalesce($TAX, percent) percent FROM spotvat WHERE unixepoch() BETWEEN start AND end)"
+tax="SELECT 1 + percent/100.0 FROM (SELECT coalesce($TAX, percent) percent FROM spotvat WHERE instant >= start AND instant < end)"
 
-$(command -v sqlite3 || echo '/run/current-system/sw/bin/sqlite3') ./spot.db '.mode json' "
-    SELECT strftime('%Y-%m-%dT%H:%M:%S${offset}', instant, 'unixepoch', 'localtime') startTime,
+$(command -v sqlite3 || echo '/run/current-system/sw/bin/sqlite3') "$DB" '.mode json' "
+    SELECT strftime('%Y-%m-%dT%H:%M:%SZ', instant, 'unixepoch') startTime,
            average centsPerKWh
     FROM (
         SELECT instant,
@@ -53,4 +54,4 @@ $(command -v sqlite3 || echo '/run/current-system/sw/bin/sqlite3') ./spot.db '.m
         WINDOW win AS (ORDER BY instant ROWS between CURRENT ROW AND $WINDOW-1 FOLLOWING)
     )
     WHERE rows = $WINDOW
-    ORDER BY average"
+    ORDER BY average" | formatJson

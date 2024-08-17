@@ -1,6 +1,8 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -i dash -I channel:nixos-24.05-small -p sqlite getoptions coreutils
+#! nix-shell -i dash -I channel:nixos-24.05-small -p sqlite getoptions coreutils jq miller
 set -eu
+
+DB="${DB:-./spot.db}"
 
 TZ='Europe/Helsinki'
 TAX='null'
@@ -23,13 +25,10 @@ eval "$(getoptions parser) exit 1"
 if [ $# != 0 ]; then usage; exit 1; fi
 
 export TZ
-offset=$(date +%:z)
-tax="SELECT 1 + percent/100.0 FROM (SELECT coalesce($TAX, percent) percent FROM spotvat WHERE unixepoch() BETWEEN start AND end)"
+tax="SELECT 1 + percent/100.0 FROM (SELECT coalesce($TAX, percent) percent FROM spotvat WHERE instant >= start AND instant < end)"
 
-$(command -v sqlite3 || echo '/run/current-system/sw/bin/sqlite3') ./spot.db '.mode json' "
-    SELECT strftime('%Y-%m-%dT%H:%M:%S${offset}', instant, 'unixepoch', 'localtime') startTime,
+$(command -v sqlite3 || echo '/run/current-system/sw/bin/sqlite3') "$DB" '.mode json' "
+    SELECT strftime('%Y-%m-%dT%H:%M:%SZ', instant, 'unixepoch') startTime,
            centsPerKWh * CASE WHEN centsPerKWh > 0 THEN ($tax) ELSE 1 END centsPerKWh
     FROM spot
-    WHERE instant BETWEEN unixepoch('now', '$DELTA hours', '-1 hour') AND unixepoch('now', '$DELTA hours')"\
-  | sed 's/^\[//'\
-  | sed 's/\]$//'
+    WHERE instant BETWEEN unixepoch('now', '$DELTA hours', '-1 hour') AND unixepoch('now', '$DELTA hours')" | formatJson | jq -c '.[0]'
