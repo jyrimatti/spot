@@ -1,12 +1,12 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -i dash -I channel:nixos-24.05-small -p jq
+#! nix-shell -i dash -I channel:nixos-24.05-small -p dash jq miller
 set -eu
 
 . ./util.sh
 
-res=$(./transfer.sh $(getParameters) 2>&1) || (echo -e "Status: 400\n\n$res" && exit 1)
+res=$(./transfer.sh $(getParameters) 2>&1) || (echo "Status: 400\n\n$res" && exit 1)
 
 echo 'Content-Type: text/csv'
 echo 'Cache-Control: max-age=60, must-revalidate'
 echo ''
-echo "$res" | jq -r 'map([.provider, .product, .startTime, .endTime, .centsPerKWh, .fromHour, .toHour]) | .[] | @csv'
+echo "$res" | mlr --j2c cat
