@@ -4,3 +4,4 @@ DAY_AHEAD*.xml
 .spot-token
 web/tsconfig.json
 web/node_modules
+test.db
