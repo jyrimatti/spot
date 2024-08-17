@@ -7,8 +7,14 @@ INSERT INTO spotvat(start, end, percent) VALUES (unixepoch('2023-05-01 00:00:00+
 INSERT INTO spotvat(start,      percent) VALUES (unixepoch('2024-09-01 00:00:00+03:00'),                                         25.5);
 
 INSERT INTO transfervat(       end, percent) VALUES (                                        unixepoch('1994-06-01 00:00:00+03:00'), 0);
-INSERT INTO transfervat(start, end, percent) VALUES (unixepoch('1994-06-01 00:00:00+03:00'), unixepoch('2010-07-01 00:00:00+03:00'), 22);
+INSERT INTO transfervat(start, end, percent) VALUES (unixepoch('1994-06-01 00:00:00+03:00'), unixepoch('2002-01-01 00:00:00+02:00'), 22);
+INSERT INTO transfervat(start, end, percent) VALUES (unixepoch('2002-01-01 00:00:00+02:00'), unixepoch('2003-01-01 00:00:00+02:00'), 22);
+INSERT INTO transfervat(start, end, percent) VALUES (unixepoch('2003-01-01 00:00:00+02:00'), unixepoch('2008-01-01 00:00:00+02:00'), 22);
+INSERT INTO transfervat(start, end, percent) VALUES (unixepoch('2008-01-01 00:00:00+02:00'), unixepoch('2010-07-01 00:00:00+03:00'), 22);
+INSERT INTO transfervat(start, end, percent) VALUES (unixepoch('2010-07-01 00:00:00+03:00'), unixepoch('2011-01-01 00:00:00+02:00'), 22);
 INSERT INTO transfervat(start, end, percent) VALUES (unixepoch('2010-07-01 00:00:00+03:00'), unixepoch('2013-01-01 00:00:00+02:00'), 23);
+INSERT INTO transfervat(start, end, percent) VALUES (unixepoch('2013-01-01 00:00:00+02:00'), unixepoch('2014-01-01 00:00:00+02:00'), 23);
+INSERT INTO transfervat(start, end, percent) VALUES (unixepoch('2014-01-01 00:00:00+02:00'), unixepoch('2015-01-01 00:00:00+02:00'), 23);
 INSERT INTO transfervat(start, end, percent) VALUES (unixepoch('2013-01-01 00:00:00+02:00'), unixepoch('2024-09-01 00:00:00+03:00'), 24);
 INSERT INTO transfervat(start,      percent) VALUES (unixepoch('2024-09-01 00:00:00+03:00'),                                         25.5);
 
