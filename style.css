@@ -10,6 +10,18 @@ input {
     width: 100%;
 }
 
+.content {
+    display: none;
+    position: absolute;
+    padding: 0.5em;
+    z-index: 1;
+    border: 1px dotted;
+    border-radius: 0.4em;
+}
+div:hover > .content {
+    display: block;
+}
+
 header {
     display: flex;
     white-space: nowrap;
@@ -61,32 +73,34 @@ header {
             border-radius: 0.4em;
             background: skyblue;
         }
-        .transfer-content {
-            display: none;
-            position: absolute;
-            padding: 0.5em;
-            z-index: 1;
+        .content {
             background: skyblue;
-            border-radius: 0 0.4em 0.4em 0.4em;
-            border: 1px dotted cadetblue;
+            border-color: cadetblue;
+            border-top-left-radius: 0;
         }
         &:hover {
             .transfer-icon {
                 border-radius: 0.4em 0.4em 0 0;
                 border-bottom-color: skyblue;
             }
-            .transfer-content {
-                display: block;
+            .content {
                 border-top: hidden;
             }
         }
     }
 
     .api {
-        display: flex;
-        flex-direction: column;
-        &:not(:hover) a {
-            display: none;
+        .content {
+            flex-direction: column;
+            background: white;
+            border-color: gray;
+            border-right: 0;
+            right: 0;
+        }
+        &:hover {
+            .content {
+                display: flex;
+            }
         }
     }
 

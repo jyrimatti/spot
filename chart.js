@@ -25,7 +25,7 @@ let mkChart = (root, dateFns, dateFnsTz) => {
 
   let tooltip = am5.Tooltip.new(root, {
     pointerOrientation: "down",
-    dy: -25
+    dy: -50
   });
   tooltip.get("background").setAll({
     stroke: am5.color('#000000'),
@@ -117,11 +117,9 @@ let mkSeriesConstructor = (dateFns, dateFnsTz, root, chart, xAxis, yAxis) => (na
   });
   ret.columns.template.setAll({
     fillOpacity:    0.5,
-    cornerRadiusTL: 2,
-    cornerRadiusTR: 2,
     tooltip:        am5.Tooltip.new(root, {
       pointerOrientation: 'up',
-      dy: 25
+      dy: 35
     }),
     tooltipText:    "[fontFamily: monospace fontSize: 9px]" + name + ": {centsPerKWh} c/kWh",
     width:          am5.percent(90)
@@ -149,10 +147,20 @@ let mkButton = (root, legend, text, color, active) => {
     dx:          4,
     marginTop:   6,
     fill:        am5.color(color),
-    tooltipText: text
+    layer:       40,
+    label:       am5.Label.new(root, {
+      text: text,
+      fill: am5.color(color),
+      paddingLeft: 14,
+      dy: -15
+    })
   }));
   ret.get('background').setAll({
-    fill: am5.color(color)
+    fill: am5.color(color),
+    cornerRadiusBL: 5,
+    cornerRadiusBR: 5,
+    cornerRadiusTL: 5,
+    cornerRadiusTR: 5
   });
   return ret;
 };
@@ -212,7 +220,7 @@ let mkNightRanges = (dateFns, dateFnsTz, xAxis, startTime, endTime) => interval 
       night.set("userData", { night: true });
       night.get("axisFill").setAll({
           fill:        am5.color('#0000ff'),
-          fillOpacity: 0.05,
+          fillOpacity: 0.03,
           visible:     true
       });
     });
@@ -389,9 +397,9 @@ let initChart = (dateFns, dateFnsTz, dayPrice, nightPrice, nightStart, nightEnd,
     fillOpacity: 0.4
   });
 
-  spotVATSeries.set('fill', am5.Color.lighten(spotSeries.get('fill'), 0.45));
-  transferVATSeries.set('fill', am5.Color.lighten(transferSeries.get('fill'), 0.35));
-  electricityTaxVATSeries.set('fill', am5.Color.lighten(electricityTaxSeries.get('fill'), 0.45));
+  spotVATSeries.set('fill', am5.Color.lighten(spotSeries.get('fill'), 0.6));
+  transferVATSeries.set('fill', am5.Color.lighten(transferSeries.get('fill'), 0.6));
+  electricityTaxVATSeries.set('fill', am5.Color.lighten(electricityTaxSeries.get('fill'), 0.6));
 
   initTotals(root, totals);
 
@@ -408,7 +416,7 @@ let initChart = (dateFns, dateFnsTz, dayPrice, nightPrice, nightStart, nightEnd,
   }
 
   let VATSeries = am5xy.ColumnSeries.new(root, { 
-    name:             'VAT',
+    name:             'VATs',
     valueYField:       "centsPerKWh",
     valueXField:       "instant",
     xAxis:             xAxis,
@@ -464,10 +472,10 @@ let initChart = (dateFns, dateFnsTz, dayPrice, nightPrice, nightStart, nightEnd,
   chart.series.push(VATSeries);
 
   let legend = mkLegend(root, chart);
-  legend.data.setAll([spotSeries, VATSeries, transferSeries, electricityTaxSeries]);
+  legend.data.setAll([spotSeries, transferSeries, electricityTaxSeries, VATSeries]);
 
-  let showNightsButton = mkButton(root, legend, "Show/hide nights", '#0000ff', nightVisible.checked);
-  let showWeekendsButton = mkButton(root, legend, "Show/hide weekends", '#000000', weekendVisible.checked);
+  let showNightsButton = mkButton(root, legend, "Nights", '#0000ff', nightVisible.checked);
+  let showWeekendsButton = mkButton(root, legend, "Weekends", '#000000', weekendVisible.checked);
 
   let initRanges = mkRangeInitializer(dateFns, dateFnsTz, root, chart, xAxis, () => showWeekendsButton.get('active'), () => showNightsButton.get('active'));
 
