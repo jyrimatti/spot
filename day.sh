@@ -1,5 +1,5 @@
 #! /usr/bin/env nix-shell
-#! nix-shell -i dash -I channel:nixos-24.05-small -p sqlite getoptions coreutils jq miller
+#! nix-shell -i dash -I channel:nixos-24.05-small -p sqlite getoptions coreutils miller
 set -eu
 
 DB="${DB:-./spot.db}"

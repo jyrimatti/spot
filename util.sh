@@ -1,4 +1,16 @@
 
+formatJson() {
+    if [ "$TZ" != "" ] && [ "$(echo "$TZ" | tr '[:upper:]' '[:lower:]')" != "utc" ]; then
+        mlr --json --no-jvstack format-values -f '%.3f' then put 'is_present($startTime) { $startTime=strftime_local(gmt2sec($startTime), "%FT%T%z") }; is_present($endTime) { $endTime=strftime_local(gmt2sec($endTime), "%FT%T%z") }; is_present($instant) { $instant=strftime_local(gmt2sec($instant), "%FT%T%z") }'
+    else
+        mlr --json --no-jvstack format-values -f '%.3f'
+    fi
+}
+
+
+
+# CGI helpers
+
 urldecode() {
     echo "$1" | sed 'y/+/ /; s/%/\\x/g'
 }
@@ -19,13 +31,9 @@ getParameters() {
     urldecode "$QUERY_STRING" | sed 's/&/ --/g' | sed 's/^/--/'
 }
 
-formatJson() {
-    if [ "$TZ" != "" ] && [ "$(echo "$TZ" | tr '[:upper:]' '[:lower:]')" != "utc" ]; then
-        mlr --json format-values -f '%.3f' then put 'is_present($startTime) { $startTime=strftime_local(gmt2sec($startTime), "%FT%T%z") }; is_present($endTime) { $endTime=strftime_local(gmt2sec($endTime), "%FT%T%z") }; is_present($instant) { $instant=strftime_local(gmt2sec($instant), "%FT%T%z") }' | jq -c
-    else
-        mlr --json format-values -f '%.3f' | jq -c
-    fi
-}
+
+
+# Argument validators
 
 percentage() {
   case $OPTARG in ''|*[!0-9]*) return 1 ;; esac
