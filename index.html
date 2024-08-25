@@ -19,8 +19,8 @@
     <script crossorigin src="https://unpkg.com/@popperjs/core@2"></script>
     <script crossorigin src="https://unpkg.com/tippy.js@6"></script>
     <script crossorigin src="https://unpkg.com/htmx-persist-fields/dist/persist-fields.js"></script>
-    <script src="web/dist/sqlite-wasm-http-main.js"></script>
-    <script src="sqlite.js"></script>
+    <script src="lib/sqlite-wasm-http-main.js"></script>
+    <script crossorigin src="https://unpkg.com/htmx-sqlite/dist/sqlite.min.js"></script>
     <script src="chart.js"></script>
     <script src="ui.js"></script>
 
@@ -87,20 +87,20 @@
           initQuery(dateFns, document.getElementById('query'));
           initTooltips(document);
           window.init = initChart(dateFns,
-                                           dateFnsTz,
-                                           document.getElementsByName('price')[0],
-                                           document.getElementsByName('night-price')[0],
-                                           document.getElementsByName('night-start')[0],
-                                           document.getElementsByName('night-end')[0],
-                                           document.querySelector('[name="visible"][value="spot"]'),
-                                           document.querySelector('[name="visible"][value="tax"]'),
-                                           document.querySelector('[name="visible"][value="transfer"]'),
-                                           document.querySelector('[name="visible"][value="electricityTax"]'),
-                                           document.querySelector('[name="visible"][value="nights"]'),
-                                           document.querySelector('[name="visible"][value="weekends"]'),
-                                           () => window.spotVAT,
-                                           () => window.transferVAT,
-                                           () => window.electricityTax);
+                                  dateFnsTz,
+                                  document.getElementsByName('price')[0],
+                                  document.getElementsByName('night-price')[0],
+                                  document.getElementsByName('night-start')[0],
+                                  document.getElementsByName('night-end')[0],
+                                  document.querySelector('[name="visible"][value="spot"]'),
+                                  document.querySelector('[name="visible"][value="tax"]'),
+                                  document.querySelector('[name="visible"][value="transfer"]'),
+                                  document.querySelector('[name="visible"][value="electricityTax"]'),
+                                  document.querySelector('[name="visible"][value="nights"]'),
+                                  document.querySelector('[name="visible"][value="weekends"]'),
+                                  () => window.spotVAT,
+                                  () => window.transferVAT,
+                                  () => window.electricityTax);
 
           htmx.trigger('#query', 'change');
         });
