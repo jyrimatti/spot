@@ -2,4 +2,4 @@
 #! nix-shell --pure -i dash -I channel:nixos-23.05-small -p dash nodejs
 set -eu
 
-./web/node_modules/.bin/http-server
+npx serve
