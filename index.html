@@ -28,11 +28,34 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body hx-ext="client-side-templates,sqlite,persist-fields" hx-db="http:/spot.db">
-    <template id="tablerow">
-      {{#data}}
-        <tr><td>{{formatInTimeZone (micro2milli instant) }}</td><td>{{round centsPerKWh}}</td></tr>
-      {{/data}}
-    </template>
+    <script id="tablecontent" type="text/plain">
+      <thead>
+        <tr>
+          {{#with this.[0]}}
+            {{#each this}}
+              <th>{{@key}}</th>
+            {{/each}}
+          {{/with}}
+        </tr>
+      </thead>
+      <tbody>
+        {{#each this}}
+          <tr>
+            {{#each this}}
+              {{#in @key 'instant' 'start' 'end'}}
+                <td>{{formatInTimeZone (micro2milli this)}}</td>
+              {{else}}
+                {{#empty this}}
+                  <td>-</td>
+                {{else}}
+                  <td>{{this}}</td>
+                {{/empty}}
+              {{/in}}
+            {{/each}}
+          </tr>
+        {{/each}}
+      </tbody>
+    </script>
 
     <template id="presetoption">
       {{#data}}
@@ -57,8 +80,10 @@
       import('https://cdn.skypack.dev/date-fns@2.30.0').then(dateFns => {
         import('https://cdn.skypack.dev/date-fns-tz@2.0.0').then(dateFnsTz => {
 
-          Handlebars.registerPartial("tablerow", Handlebars.compile(document.getElementById("tablerow").innerHTML));
-          Handlebars.registerPartial("presetoption", Handlebars.compile(document.getElementById("presetoption").innerHTML));
+          Handlebars.registerPartial("tablecontent", Handlebars.compile(document.getElementById("tablecontent").innerHTML, {strict:true}));
+          Handlebars.registerPartial("presetoption", Handlebars.compile(document.getElementById("presetoption").innerHTML, {strict:true}));
+          Handlebars.registerHelper('in', function(arg1, arg2, arg3, arg4, options) { return [arg2, arg3, arg4].includes(arg1) ? options.fn(this) : options.inverse(this) });
+          Handlebars.registerHelper('empty', function(arg1, options) { return JSON.stringify(arg1) == '{}' ? options.fn(this) : options.inverse(this); });
 
           Handlebars.registerHelper('formatInTimeZone', instant => dateFnsTz.formatInTimeZone(new Date(instant), 'Europe/Helsinki', "yyyy-MM-dd HH:mm"));
           Handlebars.registerHelper('micro2milli', instant => instant*1000);
@@ -162,10 +187,10 @@
              placeholder="your query here..."
              hx-sql=""
              hx-boost="true"
-             hx-target=":target tbody"
+             hx-target=":target table"
              hx-trigger="change"
-             handlebars-array-template="tablerow"
-             hx-on:htmx:before-on-load="init(event.detail.xhr.response.map(x => x.instant ? {...x, instant: x.instant*1000} : x), getSelectedBaseInterval(document))" />
+             handlebars-template="tablecontent"
+             hx-on:htmx:before-on-load="if (document.querySelector(':target table') == null) { init(event.detail.xhr.response.map(x => x.instant ? {...x, instant: x.instant*1000} : x), getSelectedBaseInterval(document)); }" />
 
       <a href="api/">API docs</a>
       <div class="api">
@@ -187,10 +212,6 @@
       <div id="table">
         <a class="mode chart" href="#" title="Show chart" onclick="htmx.trigger('#query', 'change')">📊</a></span>
         <table>
-          <thead>
-            <tr><th>instant</th><th>cents/kWh</th></tr>
-          </thead>
-          <tbody></tbody>
         </table>
       </div>
       <div id="chart">
