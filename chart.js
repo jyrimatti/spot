@@ -19,7 +19,8 @@ let mkChart = (root, dateFns, dateFnsTz) => {
       scrollbarX: am5xy.XYChartScrollbar.new(root, {
         orientation: 'horizontal'
       }),
-      maxTooltipDistance: -1
+      maxTooltipDistance: -1,
+      visible: false
     })
   );
 
@@ -147,7 +148,6 @@ let mkButton = (root, legend, text, color, active) => {
     dx:          4,
     marginTop:   6,
     fill:        am5.color(color),
-    layer:       40,
     label:       am5.Label.new(root, {
       text: text,
       fill: am5.color(color),
@@ -339,8 +339,9 @@ let initSpotSeries = (dateFns, xAxis, series) => {
     0.3 + Math.abs(2*target.dataItem.dataContext.centsPerKWh / 40));
   
   series.events.once("datavalidated", ev =>
-    xAxis.zoomToDates(dateFns.addHours(new Date(), -24),
+    xAxis.zoomToDates(dateFns.addHours(new Date(), -18),
                       new Date(Math.max(...ev.target.data.values.map(x => x.instant)))));
+    series.chart.set('visible', true);
 };
 
 let initTotals = (root, totals) => {
