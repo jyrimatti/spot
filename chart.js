@@ -495,10 +495,12 @@ let initChart = (dateFns, dateFnsTz, dayPrice, nightPrice, nightStart, nightEnd,
   });
 
   return (data, baseInterval) => {
-    if (baseInterval) {
-      xAxis.set('baseInterval', { timeUnit: baseInterval, count: 1 });
-    }
-    initData(dateFns, dateFnsTz, spotSeries, spotVATSeries, transferSeries, transferVATSeries, electricityTaxSeries, electricityTaxVATSeries, totals, spotVAT(), transferVAT(), electricityTax())(data, parseFloat(dayPrice.value), parseFloat(nightPrice.value), nightStart.value, nightEnd.value);
-    initRanges(data, baseInterval == 'hour', nightStart.value || '22:00', nightEnd.value || '07:00');
+    window.setTimeout(() => { // execute in main thread
+      if (baseInterval) {
+        xAxis.set('baseInterval', { timeUnit: baseInterval, count: 1 });
+      }
+      initData(dateFns, dateFnsTz, spotSeries, spotVATSeries, transferSeries, transferVATSeries, electricityTaxSeries, electricityTaxVATSeries, totals, spotVAT(), transferVAT(), electricityTax())(data, parseFloat(dayPrice.value), parseFloat(nightPrice.value), nightStart.value, nightEnd.value);
+      initRanges(data, baseInterval == 'hour', nightStart.value || '22:00', nightEnd.value || '07:00');
+    }, 1);
   };
 };
