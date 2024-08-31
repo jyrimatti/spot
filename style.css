@@ -125,6 +125,10 @@ main {
         top: 6px;
     }
 
+    #chart {
+        height: 100%;
+    }
+
     /* Tabular view */
     #table {
         display: none;
