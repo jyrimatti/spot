@@ -339,7 +339,7 @@ let initSpotSeries = (dateFns, xAxis, series) => {
     0.3 + Math.abs(2*target.dataItem.dataContext.centsPerKWh / 40));
   
   series.events.once("datavalidated", ev => {
-    let end = new Date(Math.min(new Date().getTime() + 8*60*60*1000, // preferred end (now + 16h)
+    let end = new Date(Math.min(new Date().getTime() + 16*60*60*1000, // preferred end (now + 16h)
                                 Math.max(...ev.target.data.values.map(x => x.instant)))); // last data value
     xAxis.zoomToDates(dateFns.addHours(end, -24), end);
     series.chart.set('visible', true);
