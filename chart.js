@@ -338,10 +338,11 @@ let initSpotSeries = (dateFns, xAxis, series) => {
   series.columns.template.adapters.add('opacity', (_,target) =>
     0.3 + Math.abs(2*target.dataItem.dataContext.centsPerKWh / 40));
   
-  series.events.once("datavalidated", ev =>
-    xAxis.zoomToDates(dateFns.addHours(new Date(), -14),
-                      new Date(Math.max(...ev.target.data.values.map(x => x.instant)))));
+  series.events.once("datavalidated", ev => {
+    let last = new Date(Math.max(...ev.target.data.values.map(x => x.instant)));
+    xAxis.zoomToDates(dateFns.addHours(last, -16), last);
     series.chart.set('visible', true);
+  });
 };
 
 let initTotals = (root, totals) => {
