@@ -108,15 +108,6 @@
             document.querySelectorAll('[name="transfer"] input').forEach(x => x.dispatchEvent(new Event('change')));
           };
 
-          // check every minute if pwa needs to reload
-          setInterval(() => {
-            // re-query if query was executed over 1h ago
-            if (window.queried && (new Date() - window.queried) > 60*60*1000) {
-              console.debug("reloading...");
-              htmx.trigger('#query', 'change');
-            }
-          }, 60*1000);
-
           htmx.trigger(window, 'app-ready');
 
           initQuery(dateFns, document.getElementById('query'));
@@ -200,7 +191,7 @@
              hx-target=":target table"
              hx-trigger="change"
              handlebars-template="tablecontent"
-             hx-on:htmx:before-on-load="window.queried = new Date(); if (document.querySelector(':target table') == null) { init(event.detail.xhr.response.map(x => x.instant ? {...x, instant: x.instant*1000} : x), getSelectedBaseInterval(document)); }" />
+             hx-on:htmx:before-on-load="if (document.querySelector(':target table') == null) { init(event.detail.xhr.response.map(x => x.instant ? {...x, instant: x.instant*1000} : x), getSelectedBaseInterval(document)); }" />
 
       <a href="api/">API docs</a>
       <div class="api">
