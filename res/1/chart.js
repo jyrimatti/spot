@@ -7,7 +7,7 @@ let mkRoot = () => {
   return root;
 };
 
-let mkChart = (root, dateFns, dateFnsTz) => {
+let mkChart = (root, dateFns) => {
   let chart = root.container.children.push(
     am5xy.XYChart.new(root, {
       panX:       true,
@@ -42,9 +42,9 @@ let mkChart = (root, dateFns, dateFnsTz) => {
         let name = series.get("name");
         if (i == 0) {
           texts.push("[fontFamily: monospace fontSize: 9px verticalAlign: super]" +
-                     dateFnsTz.formatInTimeZone(new Date(tooltipDataItem.get("valueX")), 'Europe/Helsinki', "yyyy-MM-dd HH:mm") +
+                     formatInFI(new Date(tooltipDataItem.get("valueX"))) +
                      " - " +
-                     dateFnsTz.formatInTimeZone(dateFns.addHours(new Date(tooltipDataItem.get("valueX")), 1), 'Europe/Helsinki', "HH:mm") +
+                     formatTimeInFI(dateFns.addHours(new Date(tooltipDataItem.get("valueX")), 1)) +
                     "[fontFamily: monospace fontSize: 9px]");
         }
         if (series.isVisible()) {
@@ -102,7 +102,7 @@ let mkXAxis = (root, chart) => {
   return xAxis;
 };
 
-let mkSeriesConstructor = (dateFns, dateFnsTz, root, chart, xAxis, yAxis) => (name, store) => {
+let mkSeriesConstructor = (root, chart, xAxis, yAxis) => (name, store) => {
   let ret = am5xy.ColumnSeries.new(root, { 
     name:              name,
     stroke:            am5.color("#cfe2f3"),
@@ -165,7 +165,7 @@ let mkButton = (root, legend, text, color, active) => {
   return ret;
 };
 
-let mkCurrentTimeRange = (dateFns, dateFnsTz, root, chart, xAxis) => data => {
+let mkCurrentTimeRange = (dateFns, root, chart, xAxis) => data => {
   let now = new Date();
   let currentTime = xAxis.makeDataItem({
     value:    dateFns.addMinutes(now, -1).getTime(),
@@ -210,12 +210,12 @@ let mkWeekendRanges = (dateFns, root, xAxis) => interval => {
   });
 };
 
-let mkNightRanges = (dateFns, dateFnsTz, xAxis, startTime, endTime) => interval => {
+let mkNightRanges = (dateFns, xAxis, startTime, endTime) => interval => {
   if (startTime && endTime) {
     dateFns.eachDayOfInterval(interval).forEach(x => {
       let night = xAxis.createAxisRange(xAxis.makeDataItem({
-        value:    dateFnsTz.zonedTimeToUtc(new Date(dateFnsTz.formatInTimeZone(x,                     'Europe/Helsinki', 'yyyy-MM-dd') + 'T' + startTime + ':00'), 'Europe/Helsinki').getTime(),
-        endValue: dateFnsTz.zonedTimeToUtc(new Date(dateFnsTz.formatInTimeZone(dateFns.addDays(x, 1), 'Europe/Helsinki', 'yyyy-MM-dd') + 'T' + endTime + ':00'), 'Europe/Helsinki').getTime(),
+        value:    new Date(formatInFIWithHourAndMinute(startTime)(x)).getTime(),
+        endValue: new Date(formatInFIWithHourAndMinute(endTime)(dateFns.addDays(x, 1))).getTime(),
       }));
       night.set("userData", { night: true });
       night.get("axisFill").setAll({
@@ -232,7 +232,7 @@ let findPrice = (data, row) => data.find(y => y.start.getTime() <= row.instant &
 
 let parseMinutes = duration => duration.split(':').map(x => parseInt(x)).reduce((a,b) => a*60 + b);
 
-let initData = (dateFns, dateFnsTz, mainSeries, spotVATSeries, transferSeries, transferVATSeries, electricityTaxSeries, electricityTaxVATSeries, totals, spotVAT, transferVAT, electricityTax) => (data, dayPrice, nightPrice, nightStart, nightEnd) => {
+let initData = (dateFns, mainSeries, spotVATSeries, transferSeries, transferVATSeries, electricityTaxSeries, electricityTaxVATSeries, totals, spotVAT, transferVAT, electricityTax) => (data, dayPrice, nightPrice, nightStart, nightEnd) => {
   data = data.sort((a,b) => a.instant - b.instant);
   
   mainSeries.data.setAll(data);
@@ -291,10 +291,10 @@ let initData = (dateFns, dateFnsTz, mainSeries, spotVATSeries, transferSeries, t
   }));
 };
 
-let mkRangeInitializer = (dateFns, dateFnsTz, root, chart, xAxis, showWeekendsF, showNightsF) => (data, includeNightsAndWeekends, nightStart, nightEnd) => {
+let mkRangeInitializer = (dateFns, root, chart, xAxis, showWeekendsF, showNightsF) => (data, includeNightsAndWeekends, nightStart, nightEnd) => {
   xAxis.axisRanges.clear();
 
-  let currentTime = mkCurrentTimeRange(dateFns, dateFnsTz, root, chart, xAxis)(data);
+  let currentTime = mkCurrentTimeRange(dateFns, root, chart, xAxis)(data);
   setInterval(() => {
     let now = new Date();
     currentTime.setAll({
@@ -314,7 +314,7 @@ let mkRangeInitializer = (dateFns, dateFnsTz, root, chart, xAxis, showWeekendsF,
     }
 
     if (includeNightsAndWeekends && showNightsF()) {
-      mkNightRanges(dateFns, dateFnsTz, xAxis, nightStart, nightEnd)(interval);
+      mkNightRanges(dateFns, xAxis, nightStart, nightEnd)(interval);
     }
   }
 };
@@ -340,7 +340,7 @@ let initSpotSeries = (dateFns, xAxis, series) => {
   
   series.events.once("datavalidated", ev => {
     let end = new Date(Math.min(new Date().getTime() + 16*60*60*1000, // preferred end (now + 16h)
-                                Math.max(...ev.target.data.values.map(x => x.instant)))); // last data value
+                       Math.max(...ev.target.data.values.map(x => x.instant)))); // last data value
     xAxis.zoomToDates(dateFns.addHours(end, -24), end);
     series.chart.set('visible', true);
   });
@@ -369,13 +369,13 @@ let mkLegend = (root, chart) =>
     layout: root.verticalLayout
   }));
 
-let initChart = (dateFns, dateFnsTz, dayPrice, nightPrice, nightStart, nightEnd, spotVisible, VATVisible, transferVisible, electricityTaxVisible, nightVisible, weekendVisible, spotVAT, transferVAT, electricityTax) => {
+let initChart = (dateFns, dayPrice, nightPrice, nightStart, nightEnd, spotVisible, VATVisible, transferVisible, electricityTaxVisible, nightVisible, weekendVisible, spotVAT, transferVAT, electricityTax) => {
   let root = mkRoot();
-  let chart = mkChart(root, dateFns, dateFnsTz);
+  let chart = mkChart(root, dateFns);
   let yAxis = mkYAxis(root, chart);
   let xAxis = mkXAxis(root, chart);
 
-  let mkSeries = mkSeriesConstructor(dateFns, dateFnsTz, root, chart, xAxis, yAxis);
+  let mkSeries = mkSeriesConstructor(root, chart, xAxis, yAxis);
   let spotSeries              = mkSeries("Spot", spotVisible);
   let spotVATSeries           = mkSeries("Spot VAT", VATVisible);
   let transferSeries          = mkSeries("Transfer", transferVisible);
@@ -480,7 +480,7 @@ let initChart = (dateFns, dateFnsTz, dayPrice, nightPrice, nightStart, nightEnd,
   let showNightsButton = mkButton(root, legend, "Nights", '#0000ff', nightVisible.checked);
   let showWeekendsButton = mkButton(root, legend, "Weekends", '#000000', weekendVisible.checked);
 
-  let initRanges = mkRangeInitializer(dateFns, dateFnsTz, root, chart, xAxis, () => showWeekendsButton.get('active'), () => showNightsButton.get('active'));
+  let initRanges = mkRangeInitializer(dateFns, root, chart, xAxis, () => showWeekendsButton.get('active'), () => showNightsButton.get('active'));
 
   showNightsButton.events.on("click", ev => {
     ev.target.set('active', !ev.target.get('active'));
@@ -501,7 +501,7 @@ let initChart = (dateFns, dateFnsTz, dayPrice, nightPrice, nightStart, nightEnd,
       if (baseInterval) {
         xAxis.set('baseInterval', { timeUnit: baseInterval, count: 1 });
       }
-      initData(dateFns, dateFnsTz, spotSeries, spotVATSeries, transferSeries, transferVATSeries, electricityTaxSeries, electricityTaxVATSeries, totals, spotVAT(), transferVAT(), electricityTax())(data, parseFloat(dayPrice.value), parseFloat(nightPrice.value), nightStart.value, nightEnd.value);
+      initData(dateFns, spotSeries, spotVATSeries, transferSeries, transferVATSeries, electricityTaxSeries, electricityTaxVATSeries, totals, spotVAT(), transferVAT(), electricityTax())(data, parseFloat(dayPrice.value), parseFloat(nightPrice.value), nightStart.value, nightEnd.value);
       initRanges(data, baseInterval == 'hour', nightStart.value || '22:00', nightEnd.value || '07:00');
     }, 1);
   };

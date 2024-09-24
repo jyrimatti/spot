@@ -11,24 +11,28 @@
     <meta name="apple-mobile-web-app-capable" content="yes"/>
     <meta name="mobile-web-app-capable" content="yes"/>
     
-    <script crossorigin src="https://cdn.amcharts.com/lib/version/5.10.3/index.js"></script>
-    <script crossorigin src="https://cdn.amcharts.com/lib/version/5.10.3/xy.js"></script>
-    <script crossorigin src="https://cdn.amcharts.com/lib/version/5.10.3/themes/Animated.js"></script>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.8/handlebars.min.js"></script>
-    <script crossorigin src="https://unpkg.com/htmx.org@1.9.6"></script>
-    <script crossorigin src="https://unpkg.com/htmx.org@1.9.6/dist/ext/client-side-templates.js"></script>
-    <script crossorigin src="https://unpkg.com/@popperjs/core@2"></script>
-    <script crossorigin src="https://unpkg.com/tippy.js@6"></script>
-    <script crossorigin src="https://unpkg.com/htmx-persist-fields/dist/persist-fields.js"></script>
-    <script src="lib/sqlite-wasm-http-main.js"></script>
-    <script crossorigin src="https://unpkg.com/htmx-sqlite/dist/sqlite.min.js"></script>
-    <script src="chart.js"></script>
-    <script src="ui.js"></script>
+    <script src="lib/amcharts-5.10.3-index.min.js"></script>
+    <script src="lib/amcharts-5.10.3-xy.min.js"></script>
+    <script src="lib/amcharts-5.10.3-Animated.min.js"></script>
+    <script src="lib/date-fns-4.1.0.min.js"></script>
+    <script src="lib/date-fns-4.1.0-fi.min.js"></script>
+    <script src="lib/handlebars-4.7.8.min.js"></script>
+    <script src="lib/htmx-1.9.6.min.js"></script>
+    <script src="lib/htmx-1.9.6-client-side-templates.js"></script>
+    <script src="lib/popper-2.11.8-core.min.js"></script>
+    <script src="lib/tippy-6.3.7.min.js"></script>
+    <script src="lib/htmx-persist-fields-1.0.4.min.js"></script>
+    <script src="lib/htmx-sqlite-1.0.0/sqlite-wasm-http-main.js"></script>
+    <script src="lib/htmx-sqlite-1.0.0.min.js"></script>
 
-    <link crossorigin rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light.css" />
-    <link rel="stylesheet" href="style.css" />
+    <link href="lib/tippy-6.3.7-light.css" rel="stylesheet" />
+
+    <link href="res/1/style.css" rel="stylesheet" />
+    <script src="res/1/chart.js"></script>
+    <script src="res/1/ui.js"></script>
   </head>
-  <body hx-ext="client-side-templates,sqlite,persist-fields" hx-db="http:/spot.db">
+  
+  <body hx-ext="client-side-templates,sqlite,persist-fields" hx-db="http:/spot.db" onload="htmx.trigger('#query', 'change');">
     <script id="tablecontent" type="text/plain">
       <thead>
         <tr>
@@ -77,62 +81,6 @@
       <input name="visible" type="checkbox" checked value="weekends" />
     </div>
     
-    <script>
-      import('https://cdn.skypack.dev/date-fns@2.30.0').then(dateFns => {
-        import('https://cdn.skypack.dev/date-fns-tz@2.0.0').then(dateFnsTz => {
-
-          Handlebars.registerPartial("tablecontent", Handlebars.compile(document.getElementById("tablecontent").innerHTML, {strict:true}));
-          Handlebars.registerPartial("presetoption", Handlebars.compile(document.getElementById("presetoption").innerHTML, {strict:true}));
-          Handlebars.registerHelper('in', function(arg1, arg2, arg3, arg4, options) { return [arg2, arg3, arg4].includes(arg1) ? options.fn(this) : options.inverse(this) });
-          Handlebars.registerHelper('empty', function(arg1, options) { return JSON.stringify(arg1) == '{}' ? options.fn(this) : options.inverse(this); });
-
-          Handlebars.registerHelper('formatInTimeZone', instant => dateFnsTz.formatInTimeZone(new Date(instant), 'Europe/Helsinki', "yyyy-MM-dd HH:mm"));
-          Handlebars.registerHelper('micro2milli', instant => instant*1000);
-          Handlebars.registerHelper('round', x => x.toFixed(3));
-
-          window.presetChanged = val => {
-            document.getElementsByName('transfer')[0].reset();
-            val.split('|').forEach((value, index) => {
-              if (value == '') {
-                // no-op
-              } else if (index == 0) {
-                document.getElementsByName('price')[0].value = parseFloat(value);
-              } else if (index == 1) {
-                document.getElementsByName('night-price')[0].value = parseFloat(value);
-              } else if (index == 2) {
-                document.getElementsByName('night-start')[0].value = value;
-              } else if (index == 3) {
-                document.getElementsByName('night-end')[0].value = value;
-              }
-            });
-            document.querySelectorAll('[name="transfer"] input').forEach(x => x.dispatchEvent(new Event('change')));
-          };
-
-          htmx.trigger(window, 'app-ready');
-
-          initQuery(dateFns, document.getElementById('query'));
-          initTooltips(document);
-          window.init = initChart(dateFns,
-                                  dateFnsTz,
-                                  document.getElementsByName('price')[0],
-                                  document.getElementsByName('night-price')[0],
-                                  document.getElementsByName('night-start')[0],
-                                  document.getElementsByName('night-end')[0],
-                                  document.querySelector('[name="visible"][value="spot"]'),
-                                  document.querySelector('[name="visible"][value="tax"]'),
-                                  document.querySelector('[name="visible"][value="transfer"]'),
-                                  document.querySelector('[name="visible"][value="electricityTax"]'),
-                                  document.querySelector('[name="visible"][value="nights"]'),
-                                  document.querySelector('[name="visible"][value="weekends"]'),
-                                  () => window.spotVAT,
-                                  () => window.transferVAT,
-                                  () => window.electricityTax);
-
-          htmx.trigger('#query', 'change');
-        });
-      });
-    </script>
-
     <header>
       <span class="current" hx-get="/current.html" hx-trigger="load, every 60s" title="Current spot price with VAT"></span>
 
@@ -233,26 +181,74 @@
                    ORDER BY provider, product"
            hx-boost="true"
            hx-target='select[name="preset"]'
-           hx-trigger="app-ready from:window"
+           hx-trigger="load"
            handlebars-array-template="presetoption" />
       
     <input type="hidden"
            hx-sql="SELECT centsPerKWh, start, end FROM electricitytax ORDER BY start DESC"
            hx-boost="true"
-           hx-trigger="app-ready from:window"
+           hx-trigger="load"
            hx-on:htmx:before-on-load="window.electricityTax = event.detail.xhr.response.map(x => ({start: new Date(x.start*1000), end: new Date(x.end*1000), centsPerKWh: x.centsPerKWh}))" />
 
     <input type="hidden"
            hx-sql="SELECT percent, start, end FROM transfervat ORDER BY start DESC"
            hx-boost="true"
-           hx-trigger="app-ready from:window"
+           hx-trigger="load"
            hx-on:htmx:before-on-load="window.transferVAT = event.detail.xhr.response.map(x => ({start: new Date(x.start*1000), end: new Date(x.end*1000), percent: x.percent}))" />
     
     <input type="hidden"
            hx-sql="SELECT percent, start, end FROM spotvat ORDER BY start DESC"
            hx-boost="true"
-           hx-trigger="app-ready from:window"
+           hx-trigger="load"
            hx-on:htmx:before-on-load="window.spotVAT = event.detail.xhr.response.map(x => ({start: new Date(x.start*1000), end: new Date(x.end*1000), percent: x.percent}))" />
+
+    <script>
+        Handlebars.registerPartial("tablecontent", Handlebars.compile(document.getElementById("tablecontent").innerHTML, {strict:true}));
+        Handlebars.registerPartial("presetoption", Handlebars.compile(document.getElementById("presetoption").innerHTML, {strict:true}));
+        Handlebars.registerHelper('in', function(arg1, arg2, arg3, arg4, options) { return [arg2, arg3, arg4].includes(arg1) ? options.fn(this) : options.inverse(this) });
+        Handlebars.registerHelper('empty', function(arg1, options) { return JSON.stringify(arg1) == '{}' ? options.fn(this) : options.inverse(this); });
+
+        Handlebars.registerHelper('formatInTimeZone', instant => formatInFI(new Date(instant)));
+        Handlebars.registerHelper('micro2milli', instant => instant*1000);
+        Handlebars.registerHelper('round', x => x.toFixed(3));
+    </script>
+
+    <script>
+        window.presetChanged = val => {
+          document.getElementsByName('transfer')[0].reset();
+          val.split('|').forEach((value, index) => {
+            if (value == '') {
+              // no-op
+            } else if (index == 0) {
+              document.getElementsByName('price')[0].value = parseFloat(value);
+            } else if (index == 1) {
+              document.getElementsByName('night-price')[0].value = parseFloat(value);
+            } else if (index == 2) {
+              document.getElementsByName('night-start')[0].value = value;
+            } else if (index == 3) {
+              document.getElementsByName('night-end')[0].value = value;
+            }
+          });
+          document.querySelectorAll('[name="transfer"] input').forEach(x => x.dispatchEvent(new Event('change')));
+        };
+
+        initQuery(dateFns, document.getElementById('query'));
+        initTooltips(document);
+        window.init = initChart(dateFns,
+                                document.getElementsByName('price')[0],
+                                document.getElementsByName('night-price')[0],
+                                document.getElementsByName('night-start')[0],
+                                document.getElementsByName('night-end')[0],
+                                document.querySelector('[name="visible"][value="spot"]'),
+                                document.querySelector('[name="visible"][value="tax"]'),
+                                document.querySelector('[name="visible"][value="transfer"]'),
+                                document.querySelector('[name="visible"][value="electricityTax"]'),
+                                document.querySelector('[name="visible"][value="nights"]'),
+                                document.querySelector('[name="visible"][value="weekends"]'),
+                                () => window.spotVAT,
+                                () => window.transferVAT,
+                                () => window.electricityTax);
+    </script>
   </body>
 </html>
 
