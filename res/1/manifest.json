@@ -1,0 +1,24 @@
+{
+    "name": "Spot prices in Finland",
+    "short_name": "Spot",
+    "icons": [{
+      "src": "favicon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }],
+    "start_url": "https://spot.lahteenmaki.net",
+    "display": "standalone",
+    "screenshots" : [{
+      "src": "screenshot.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Chart of electricity prices in Finland"
+    },{
+      "src": "screenshot2.png",
+      "sizes": "990x1440",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Chart of electricity prices in Finland"
+    }]
+}
