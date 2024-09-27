@@ -255,6 +255,7 @@
         window.loaded = new Date();
         window.addEventListener("visibilitychange", () => {
           if (document.visibilityState === "visible" && new Date() - window.loaded > 60*60*1000) {
+            window.loaded = new Date();
             htmx.trigger('#query', 'change');
           }
         });
