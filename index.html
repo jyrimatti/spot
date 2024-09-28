@@ -205,6 +205,13 @@
            hx-trigger="load"
            hx-on:htmx:before-on-load="window.spotVAT = event.detail.xhr.response.map(x => ({start: new Date(x.start*1000), end: new Date(x.end*1000), percent: x.percent}))" />
 
+    <input type="hidden"
+           id="newest"
+           hx-sql="SELECT MAX(instant) instant FROM spot"
+           hx-boost="true"
+           hx-trigger="load, visibilitychange[isVisible()] from:window"
+           hx-on:htmx:before-on-load="const newval = JSON.stringify(event.detail.xhr.response[0].instant); if (this.value && this.value !== newval) { window.location.reload(); }; this.value = newval;" />
+
     <script>
         Handlebars.registerPartial("tablecontent", Handlebars.compile(document.getElementById("tablecontent").innerHTML, {strict:true}));
         Handlebars.registerPartial("presetoption", Handlebars.compile(document.getElementById("presetoption").innerHTML, {strict:true}));
@@ -217,6 +224,8 @@
     </script>
 
     <script>
+        window.isVisible = () => document.visibilityState === "visible";
+
         window.presetChanged = val => {
           document.getElementsByName('transfer')[0].reset();
           val.split('|').forEach((value, index) => {
@@ -251,14 +260,6 @@
                                 () => window.spotVAT,
                                 () => window.transferVAT,
                                 () => window.electricityTax);
-        
-        window.loaded = new Date();
-        window.addEventListener("visibilitychange", () => {
-          if (document.visibilityState === "visible" && new Date() - window.loaded > 60*60*1000) {
-            window.loaded = new Date();
-            htmx.trigger('#query', 'change');
-          }
-        });
     </script>
   </body>
 </html>
