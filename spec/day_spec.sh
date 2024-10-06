@@ -11,10 +11,10 @@ Describe 'day'
   End
 
   sh() {
-    ./day.sh $*
+    ./day.sh $* | jq -c
   }
   json() {
-    ./day.json
+    ./day.json | tail -n+4 | jq -c
   }
   csv() {
     ./day.csv | tail -n+4 | mlr --c2j cat | jq -c
@@ -55,6 +55,6 @@ Describe 'day'
   It "$1 with timezone, outputs given day in zone"
     BeforeCall "export QUERY_STRING='tax=0&tz=UTC&day=2000-01-01'"
     When call $1 -x 0 -t UTC -d 2000-01-01
-    The output should end with '[{"startTime":"2000-01-01T21:00:00+0000","centsPerKWh":1.000},{"startTime":"2000-01-01T22:00:00+0000","centsPerKWh":2.000},{"startTime":"2000-01-01T23:00:00+0000","centsPerKWh":3.000}]'
+    The output should end with '[{"startTime":"2000-01-01T21:00:00Z","centsPerKWh":1.000},{"startTime":"2000-01-01T22:00:00Z","centsPerKWh":2.000},{"startTime":"2000-01-01T23:00:00Z","centsPerKWh":3.000}]'
   End
 End
