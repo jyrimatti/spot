@@ -9,4 +9,4 @@ res=$(./transfervat.sh $(getParameters) 2>&1) || (echo "Status: 400\n\n$res" && 
 echo 'Content-Type: text/html'
 echo 'Cache-Control: max-age=60, must-revalidate'
 echo ''
-echo "$res" | jq -r '"<html><body><table><tr><th>startTime</th><th>endTime</th><th>percent</th></tr>" + (map("<tr><td>" + .startTime + "</td><td>" + .endTime + "</td><td>" + .percent + "</td></tr>") | join("")) + "</table></body></html>"'
+echo "$res" | jq -r '"<html><body><table><tr><th>startTime</th><th>endTime</th><th>percent</th></tr>" + (map("<tr><td>" + .startTime + "</td><td>" + .endTime + "</td><td>" + (.percent |tostring) + "</td></tr>") | join("")) + "</table></body></html>"'
