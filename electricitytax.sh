@@ -23,11 +23,13 @@ eval "$(getoptions parser) exit 1"
 if [ $# != 0 ]; then usage; exit 1; fi
 
 export TZ
-tax="SELECT 1 + percent/100.0 FROM (SELECT coalesce($TAX, percent) percent FROM transfervat v WHERE v.start >= t.start AND v.start < t.end)"
+tax="SELECT 1 + percent/100.0 FROM (SELECT coalesce($TAX, percent) percent FROM transfervat v WHERE v.start < t.end AND t.start < v.end)"
 
 $(command -v sqlite3 || echo '/run/current-system/sw/bin/sqlite3') "$DB" '.mode json' "
     SELECT strftime('%Y-%m-%dT%H:%M:%SZ', start, 'unixepoch') startTime,
            strftime('%Y-%m-%dT%H:%M:%SZ', end, 'unixepoch') endTime,
-           ($tax) * centsPerKWh / (SELECT 1 + percent/100.0 FROM (SELECT percent FROM transfervat v WHERE v.start >= t.start AND v.start < t.end)) centsPerKWh
-    FROM electricitytax t
+           ($tax) * centsPerKWh / (SELECT 1 + percent/100.0 FROM (SELECT percent FROM transfervat v WHERE v.start < t.end AND t.start < v.end)) centsPerKWh
+    FROM (SELECT MAX(t.start, v.start) start, MIN(t.end, v.end) end, t.centsPerKWh
+          FROM electricitytax t
+          INNER JOIN transfervat v ON v.start < t.end AND t.start < v.end) t
     ORDER BY start" | formatJson
