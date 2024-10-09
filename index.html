@@ -23,8 +23,8 @@
     <script src="lib/popper-2.11.8-core.min.js"></script>
     <script src="lib/tippy-6.3.7.min.js"></script>
     <script src="lib/htmx-persist-fields-1.0.4.min.js"></script>
-    <script src="lib/htmx-sqlite-1.9.0/sqlite-wasm-http-main.js"></script>
-    <script src="lib/htmx-sqlite-1.9.0.min.js"></script>
+    <script src="lib/htmx-sqlite-1.9.1/sqlite-wasm-http-main.js"></script>
+    <script src="lib/htmx-sqlite-1.9.1.min.js"></script>
 
     <link href="lib/tippy-6.3.7-light.css" rel="stylesheet" />
 
@@ -135,7 +135,7 @@
         <option data-baseInterval="month" value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly max</option>
       </select>
 
-      <div persist-fields-fragment="indexed">
+      <div persist-fields-query>
         <input class="stamp" type="datetime-local" id="start" name="start" title="Start time" />
         <input class="stamp" type="datetime-local" id="end"   name="end" title="End time" />
       </div>
