@@ -89,7 +89,7 @@
 
       <div class="transfer" persist-fields-local="transfer">
         <span class="transfer-icon" title="Transfer prices">⏧</span>
-        <div class="content" hx-on:change="htmx.trigger('#template', 'change')">
+        <div class="content" hx-on:change="htmx.trigger('#query', 'change')">
           <h3>Electricity transfer</h3>
           <label>
             Preset
@@ -113,7 +113,7 @@
               <span>Night pricing end</span>
               <input name="night-end" type="time" />
             </label>
-          </div>
+          </form>
         </div>
       </div>
       

@@ -8,6 +8,7 @@ h3 {
 }
 input {
     width: 100%;
+    height: 1rem;
 }
 
 .content {
