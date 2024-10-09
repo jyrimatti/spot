@@ -23,8 +23,8 @@
     <script src="lib/popper-2.11.8-core.min.js"></script>
     <script src="lib/tippy-6.3.7.min.js"></script>
     <script src="lib/htmx-persist-fields-1.0.4.min.js"></script>
-    <script src="lib/htmx-sqlite-1.0.0/sqlite-wasm-http-main.js"></script>
-    <script src="lib/htmx-sqlite-1.0.0.min.js"></script>
+    <script src="lib/htmx-sqlite-1.9.0/sqlite-wasm-http-main.js"></script>
+    <script src="lib/htmx-sqlite-1.9.0.min.js"></script>
 
     <link href="lib/tippy-6.3.7-light.css" rel="stylesheet" />
 
@@ -137,12 +137,11 @@
       <input id="query"
              value="SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '{start}') AND strftime('%s', '{end}') ORDER BY instant DESC"
              placeholder="your query here..."
-             hx-sql=""
-             hx-boost="true"
-             hx-target=":target table"
              hx-trigger="change"
+             hx-get="this.value"
+             hx-target="#table table"
              handlebars-template="tablecontent"
-             hx-on:htmx:before-on-load="if (document.querySelector(':target table') == null) { init(event.detail.xhr.response.map(x => x.instant ? {...x, instant: x.instant*1000} : x), getSelectedBaseInterval(document)); }" />
+             hx-on:htmx:before-on-load="if (document.querySelector(':target table') == null) { init(event.detail.xhr.responseJSON.map(x => x.instant ? {...x, instant: x.instant*1000} : x), getSelectedBaseInterval(document)); }" />
 
       <a href="api/">API docs</a>
       <div class="api">
@@ -172,7 +171,7 @@
     </main>
 
     <input type="hidden"
-           hx-sql="SELECT provider,
+           hx-get="SELECT provider,
                           product,
                           CASE WHEN fromHour IS NULL THEN centsPerKWh ELSE MAX(centsPerKWh) END priceHigh,
                           CASE WHEN fromHour IS NULL THEN centsPerKWh ELSE MIN(centsPerKWh) END priceLow,
@@ -182,35 +181,30 @@
                    WHERE start <= strftime('%s', 'now') AND end > strftime('%s', 'now')
                    GROUP BY provider, product
                    ORDER BY provider, product"
-           hx-boost="true"
            hx-target='select[name="preset"]'
            hx-trigger="load"
            handlebars-array-template="presetoption" />
       
     <input type="hidden"
-           hx-sql="SELECT centsPerKWh, start, end FROM electricitytax ORDER BY start DESC"
-           hx-boost="true"
+           hx-get="SELECT centsPerKWh, start*1000 start, end*1000 end FROM electricitytax ORDER BY start DESC"
            hx-trigger="load"
-           hx-on:htmx:before-on-load="window.electricityTax = event.detail.xhr.response.map(x => ({start: new Date(x.start*1000), end: new Date(x.end*1000), centsPerKWh: x.centsPerKWh}))" />
+           hx-on:htmx:before-on-load="window.electricityTax = event.detail.xhr.responseJSON.map(intervals2dates)" />
 
     <input type="hidden"
-           hx-sql="SELECT percent, start, end FROM transfervat ORDER BY start DESC"
-           hx-boost="true"
+           hx-get="SELECT percent, start*1000 start, end*1000 end FROM transfervat ORDER BY start DESC"
            hx-trigger="load"
-           hx-on:htmx:before-on-load="window.transferVAT = event.detail.xhr.response.map(x => ({start: new Date(x.start*1000), end: new Date(x.end*1000), percent: x.percent}))" />
+           hx-on:htmx:before-on-load="window.transferVAT = event.detail.xhr.responseJSON.map(intervals2dates)" />
     
     <input type="hidden"
-           hx-sql="SELECT percent, start, end FROM spotvat ORDER BY start DESC"
-           hx-boost="true"
+           hx-get="SELECT percent, start*1000 start, end*1000 end FROM spotvat ORDER BY start DESC"
            hx-trigger="load"
-           hx-on:htmx:before-on-load="window.spotVAT = event.detail.xhr.response.map(x => ({start: new Date(x.start*1000), end: new Date(x.end*1000), percent: x.percent}))" />
+           hx-on:htmx:before-on-load="window.spotVAT = event.detail.xhr.responseJSON.map(intervals2dates)" />
 
     <input type="hidden"
            id="newest"
-           hx-sql="SELECT MAX(instant) instant FROM spot"
-           hx-boost="true"
+           hx-get="SELECT MAX(instant) FROM spot"
            hx-trigger="load, visibilitychange[isVisible()] from:window"
-           hx-on:htmx:before-on-load="const newval = JSON.stringify(event.detail.xhr.response[0].instant); if (this.value && this.value !== newval) { window.location.reload(); }; this.value = newval;" />
+           hx-on:htmx:before-on-load="const newval = event.detail.xhr.response; if (this.value && this.value !== newval) { window.location.reload(); }; this.value = newval;" />
 
     <script>
         Handlebars.registerPartial("tablecontent", Handlebars.compile(document.getElementById("tablecontent").innerHTML, {strict:true}));
