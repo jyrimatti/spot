@@ -88,7 +88,7 @@
       <span class="current" hx-get="/current.html" hx-trigger="load, every 60s" title="Current spot price with VAT"></span>
 
       <div class="transfer" persist-fields-local="transfer">
-        <span class="transfer-icon">⏧</span>
+        <span class="transfer-icon" title="Transfer prices">⏧</span>
         <div class="content" hx-on:change="htmx.trigger('#template', 'change')">
           <h3>Electricity transfer</h3>
           <label>
@@ -117,21 +117,22 @@
         </div>
       </div>
       
-      <select id="template" onchange="htmx.find('#query').value = this.value; htmx.trigger('#query', 'change');">
+      <select id="template" onchange="htmx.find('#query').value = this.value; htmx.trigger('#query', 'change');" title="Query presets">
+        <option data-baseInterval="hour"  value="SELECT * FROM spot WHERE instant BETWEEN strftime('%s', $start) AND strftime('%s', $end) ORDER BY instant DESC">Given interval</option>
         <option data-baseInterval="hour"  value="SELECT * FROM spot WHERE instant > strftime('%s', 'now', '-1 months') ORDER BY instant DESC">Past month</option>
         <option data-baseInterval="hour"  value="SELECT * FROM spot WHERE instant > strftime('%s', 'now', '-3 months') ORDER BY instant DESC">Past 3 months</option>
         <option data-baseInterval="hour"  value="SELECT * FROM spot WHERE instant > strftime('%s', 'now', '-6 months') ORDER BY instant DESC">Past 6 months</option>
         <option data-baseInterval="hour"  value="SELECT * FROM spot WHERE instant > strftime('%s', 'now', '-1 year') ORDER BY instant DESC">Past year</option>
         <option data-baseInterval="hour"  value="SELECT * FROM spot ORDER BY instant DESC">All time</option>
-        <option data-baseInterval="day"   value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily averages</option>
-        <option data-baseInterval="week"  value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly averages</option>
-        <option data-baseInterval="month" value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly averages</option>
-        <option data-baseInterval="day"   value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily minimums</option>
-        <option data-baseInterval="week"  value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly minimums</option>
-        <option data-baseInterval="month" value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly minimums</option>
-        <option data-baseInterval="day"   value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily maximums</option>
-        <option data-baseInterval="week"  value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly maximums</option>
-        <option data-baseInterval="month" value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly maximums</option>
+        <option data-baseInterval="day"   value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily avg</option>
+        <option data-baseInterval="week"  value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly avg</option>
+        <option data-baseInterval="month" value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly avg</option>
+        <option data-baseInterval="day"   value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily min</option>
+        <option data-baseInterval="week"  value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly min</option>
+        <option data-baseInterval="month" value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly min</option>
+        <option data-baseInterval="day"   value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily max</option>
+        <option data-baseInterval="week"  value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly max</option>
+        <option data-baseInterval="month" value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly max</option>
       </select>
       
       <input id="query"
@@ -141,11 +142,11 @@
              hx-get="this.value"
              hx-target="#table table"
              handlebars-template="tablecontent"
+             title="Query"
              hx-on:htmx:before-on-load="if (document.querySelector(':target table') == null) { init(event.detail.xhr.responseJSON.map(x => x.instant ? {...x, instant: x.instant*1000} : x), getSelectedBaseInterval(document)); }" />
 
-      <a href="api/">API docs</a>
       <div class="api">
-        <span>API methods</span>
+        <span>API</span>
         <div class="content">
           <a href="" title="&lt;a href='current.html'&gt;html&lt;/a&gt; | &lt;a href='current.csv'&gt;csv&lt;/a&gt; | &lt;a href='current.json'&gt;json&lt;/a&gt;">Current price</a>
           <a href="" title="&lt;a href='day.html?day={{today}}'&gt;html&lt;/a&gt; | &lt;a href='day.csv?day={{today}}'&gt;csv&lt;/a&gt; | &lt;a href='day.json?day={{today}}'&gt;json&lt;/a&gt;">Daily prices</a>
@@ -156,8 +157,8 @@
           <a href="" title="&lt;a href='spotvat.html'&gt;html&lt;/a&gt; | &lt;a href='spotvat.csv'&gt;csv&lt;/a&gt; | &lt;a href='spotvat.json'&gt;json&lt;/a&gt;">Spot VATs</a>
         </div>
       </div>
-      
-      <a class="github" href="https://github.com/jyrimatti/spot"><img src="github-mark.png" /></a>
+      <a href="api/" title="API documentation">📓</a>
+      <a class="github" href="https://github.com/jyrimatti/spot"><img src="github-mark.png" alt="Github" /></a>
     </header>
     <main>
       <div id="table">
