@@ -134,13 +134,19 @@
         <option data-baseInterval="week"  value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly max</option>
         <option data-baseInterval="month" value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly max</option>
       </select>
-      
+
+      <div persist-fields-fragment="indexed">
+        <input class="stamp" type="datetime-local" id="start" name="start" title="Start time" />
+        <input class="stamp" type="datetime-local" id="end"   name="end" title="End time" />
+      </div>
+
       <input id="query"
-             value="SELECT * FROM spot WHERE instant BETWEEN strftime('%s', '{start}') AND strftime('%s', '{end}') ORDER BY instant DESC"
+             value="SELECT * FROM spot WHERE instant BETWEEN strftime('%s', $start) AND strftime('%s', $end) ORDER BY instant DESC"
              placeholder="your query here..."
-             hx-trigger="change"
              hx-get="this.value"
+             hx-include="[name='start'],[name='end']"
              hx-target="#table table"
+             hx-trigger="change, change from:#start, change from:#end"
              handlebars-template="tablecontent"
              title="Query"
              hx-on:htmx:before-on-load="if (document.querySelector(':target table') == null) { init(event.detail.xhr.responseJSON.map(x => x.instant ? {...x, instant: x.instant*1000} : x), getSelectedBaseInterval(document)); }" />
@@ -221,6 +227,8 @@
     <script>
         window.isVisible = () => document.visibilityState === "visible";
 
+        window.intervals2dates = x => ({...x, start: new Date(x.start), end: new Date(x.end)});
+
         window.presetChanged = val => {
           document.getElementsByName('transfer')[0].reset();
           val.split('|').forEach((value, index) => {
@@ -239,7 +247,9 @@
           document.querySelectorAll('[name="transfer"] input').forEach(x => x.dispatchEvent(new Event('change')));
         };
 
-        initQuery(dateFns, document.getElementById('query'));
+        document.getElementById('start').value = formatInFI(dateFns.addMonths(new Date(), -1));
+        document.getElementById('end').value = formatInFI(dateFns.addDays(new Date(), 2));
+
         initTooltips(document);
         window.init = initChart(dateFns,
                                 document.getElementsByName('price')[0],
