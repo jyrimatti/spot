@@ -89,6 +89,15 @@ header {
         }
     }
 
+    #template,
+    #query {
+        font-size: 0.65rem;
+    }
+    #query:hover,
+    #query:focus {
+        flex-shrink: 0;
+    }
+
     .api {
         .content {
             flex-direction: column;
@@ -110,9 +119,8 @@ header {
     }
 }
 
-#query:hover,
-#query:focus {
-    flex-shrink: 0;
+.stamp {
+    width: 1rem;
 }
 main {
     height: 80vh;
@@ -123,6 +131,7 @@ main {
         position: absolute;
         left: 8px;
         top: 6px;
+        text-decoration: none;
     }
 
     #chart {

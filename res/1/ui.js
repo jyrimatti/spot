@@ -9,7 +9,7 @@ let initTooltips = doc => {
   tippy(elems, {
     allowHTML:   true,
     interactive: true,
-    placement:   'auto',
+    placement:   'bottom',
     theme:       'light',
     content(reference) {
         let title = reference.getAttribute('title');
