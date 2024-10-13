@@ -210,7 +210,8 @@
     <input type="hidden"
            id="newest"
            hx-get="SELECT MAX(instant) FROM spot"
-           hx-trigger="load, visibilitychange[isVisible()] from:window"
+           hx-trigger="load, visibilitychange[isVisible()] from:document"
+           hx-request='{"backendType":"sync"}'
            hx-on:htmx:before-on-load="const newval = event.detail.xhr.response; if (this.value && this.value !== newval) { window.location.reload(); }; this.value = newval;" />
 
     <script>
