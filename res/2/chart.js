@@ -102,6 +102,12 @@ let mkXAxis = (root, chart) => {
   return xAxis;
 };
 
+let mkSeriesTooltip = (root, series) =>
+  series.columns.template.set("tooltip", am5.Tooltip.new(root, {
+    pointerOrientation: 'up',
+    dy: 20
+  }));
+
 let mkSeriesConstructor = (root, chart, xAxis, yAxis) => (name, store) => {
   let ret = am5xy.ColumnSeries.new(root, { 
     name:              name,
@@ -118,10 +124,7 @@ let mkSeriesConstructor = (root, chart, xAxis, yAxis) => (name, store) => {
   });
   ret.columns.template.setAll({
     fillOpacity:    0.5,
-    tooltip:        am5.Tooltip.new(root, {
-      pointerOrientation: 'up',
-      dy: 35
-    }),
+    tooltipY:       am5.p100,
     tooltipText:    "[fontFamily: monospace fontSize: 9px]" + name + ": {centsPerKWh} c/kWh",
     width:          am5.percent(90)
   });
@@ -497,12 +500,17 @@ let initChart = (dateFns, dayPrice, nightPrice, nightStart, nightEnd, spotVisibl
   });
 
   return (data, baseInterval) => {
-    window.setTimeout(() => { // execute in main thread
+    window.setTimeout(() => { // execute in main thread, does it matter?
       if (baseInterval) {
         xAxis.set('baseInterval', { timeUnit: baseInterval, count: 1 });
       }
-      initData(dateFns, spotSeries, spotVATSeries, transferSeries, transferVATSeries, electricityTaxSeries, electricityTaxVATSeries, totals, spotVAT(), transferVAT(), electricityTax())(data, parseFloat(dayPrice.value), parseFloat(nightPrice.value), nightStart.value, nightEnd.value);
+      [[], data].forEach(d => {
+        initData(dateFns, spotSeries, spotVATSeries, transferSeries, transferVATSeries, electricityTaxSeries, electricityTaxVATSeries, totals, spotVAT(), transferVAT(), electricityTax())(d, parseFloat(dayPrice.value), parseFloat(nightPrice.value), nightStart.value, nightEnd.value);
+      });
       initRanges(data, baseInterval == 'hour', nightStart.value || '22:00', nightEnd.value || '07:00');
+
+      // update series tooltips whenver data changes, otherwise amcharts starts throwing disposed errors
+      chart.series.values.forEach(s => mkSeriesTooltip(root, s));
     }, 1);
   };
 };
