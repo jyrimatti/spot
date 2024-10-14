@@ -212,7 +212,7 @@
            hx-get="SELECT MAX(instant) FROM spot"
            hx-trigger="load, visibilitychange[isVisible()] from:document"
            hx-request='{"backendType":"sync"}'
-           hx-on:htmx:before-on-load="const newval = event.detail.xhr.response; if (this.value && this.value !== newval) { window.location.reload(); }; this.value = newval;" />
+           hx-on:htmx:before-on-load="checkAndReload(event, this)" />
 
     <script>
         Handlebars.registerPartial("tablecontent", Handlebars.compile(document.getElementById("tablecontent").innerHTML, {strict:true}));
@@ -227,6 +227,16 @@
 
     <script>
         window.isVisible = () => document.visibilityState === "visible";
+
+        window.checkAndReload = (event, elem) => {
+          const newval = event.detail.xhr.response;
+          if (elem.value && elem.value !== newval) {
+            console.debug('reloading...');
+            htmx.trigger(document.body, 'htmx:beforeCleanupElement'); // this will reset hx-sqlite cache
+            htmx.trigger('#query', 'change');
+          };
+          elem.value = newval;
+        };
 
         window.intervals2dates = x => ({...x, start: new Date(x.start), end: new Date(x.end)});
 
