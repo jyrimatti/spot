@@ -259,7 +259,7 @@
         };
 
         document.getElementById('start').value = formatInFI(dateFns.addMonths(new Date(), -1));
-        document.getElementById('end').value = formatInFI(dateFns.addDays(new Date(), 2));
+        document.getElementById('end').value = formatInFI(dateFns.addYears(new Date(), 10));
 
         initTooltips(document);
         window.init = initChart(dateFns,
