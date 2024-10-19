@@ -4,4 +4,4 @@ set -eu
 
 . ./spot_env.sh
 
-./spot_load.sh | ./spot_parse.sh | ./spot_insert.sh
+./spot_load.sh | ./spot_parse.sh | ./spot_insert.sh | ./spot_add_missing.sh
