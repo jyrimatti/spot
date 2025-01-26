@@ -23,8 +23,8 @@
     <script src="lib/popper-2.11.8-core.min.js"></script>
     <script src="lib/tippy-6.3.7.min.js"></script>
     <script src="lib/htmx-persist-fields-1.0.4.min.js"></script>
-    <script src="lib/htmx-sqlite-1.9.2/sqlite-wasm-http-main.js"></script>
-    <script src="lib/htmx-sqlite-1.9.2.min.js"></script>
+    <script src="lib/htmx-sqlite-1.9.3/sqlite-wasm-http-main.js"></script>
+    <script src="lib/htmx-sqlite-1.9.3.min.js"></script>
 
     <link href="lib/tippy-6.3.7-light.css" rel="stylesheet" />
 
@@ -103,15 +103,15 @@
             </label>
             <label>
               <span>Night price (c/kWh, incl. VAT)</span>
-              <input name="night-price" type="number" step="0.0001" />
+              <input name="nightprice" type="number" step="0.0001" />
             </label>
             <label>
               <span>Night pricing start</span>
-              <input name="night-start" type="time" />
+              <input name="nightstart" type="time" />
             </label>
             <label>
               <span>Night pricing end</span>
-              <input name="night-end" type="time" />
+              <input name="nightend" type="time" />
             </label>
           </form>
         </div>
@@ -124,15 +124,36 @@
         <option data-baseInterval="hour"  value="SELECT * FROM spot WHERE instant > strftime('%s', 'now', '-6 months') ORDER BY instant DESC">Past 6 months</option>
         <option data-baseInterval="hour"  value="SELECT * FROM spot WHERE instant > strftime('%s', 'now', '-1 year') ORDER BY instant DESC">Past year</option>
         <option data-baseInterval="hour"  value="SELECT * FROM spot ORDER BY instant DESC">All time</option>
-        <option data-baseInterval="day"   value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily avg</option>
-        <option data-baseInterval="week"  value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly avg</option>
-        <option data-baseInterval="month" value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly avg</option>
-        <option data-baseInterval="day"   value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily min</option>
-        <option data-baseInterval="week"  value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly min</option>
-        <option data-baseInterval="month" value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly min</option>
-        <option data-baseInterval="day"   value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily max</option>
-        <option data-baseInterval="week"  value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly max</option>
-        <option data-baseInterval="month" value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot group by strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly max</option>
+
+        <option data-baseInterval="day"   value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily avg</option>
+        <option data-baseInterval="week"  value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot GROUP BY strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly avg</option>
+        <option data-baseInterval="month" value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot GROUP BY strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly avg</option>
+        <option data-baseInterval="day"   value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) BETWEEN CAST($nightend AS integer) AND CAST($nightstart AS integer) GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily day-time avg</option>
+        <option data-baseInterval="week"  value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) BETWEEN CAST($nightend AS integer) AND CAST($nightstart AS integer) GROUP BY strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly day-time avg</option>
+        <option data-baseInterval="month" value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) BETWEEN CAST($nightend AS integer) AND CAST($nightstart AS integer) GROUP BY strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly day-time avg</option>
+        <option data-baseInterval="day"   value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) >= CAST($nightstart AS integer) OR CAST(strftime('%H', instant, 'unixepoch') AS integer) <= CAST($nightend AS integer) GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily night-time avg</option>
+        <option data-baseInterval="week"  value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) >= CAST($nightstart AS integer) OR CAST(strftime('%H', instant, 'unixepoch') AS integer) <= CAST($nightend AS integer) GROUP BY strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly avg</option>
+        <option data-baseInterval="month" value="SELECT AVG(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) >= CAST($nightstart AS integer) OR CAST(strftime('%H', instant, 'unixepoch') AS integer) <= CAST($nightend AS integer) GROUP BY strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly avg</option>
+
+        <option data-baseInterval="day"   value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily min</option>
+        <option data-baseInterval="week"  value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot GROUP BY strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly min</option>
+        <option data-baseInterval="month" value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot GROUP BY strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly min</option>
+        <option data-baseInterval="day"   value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) BETWEEN CAST($nightend AS integer) AND CAST($nightstart AS integer) GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch')  GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily day-time min</option>
+        <option data-baseInterval="week"  value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) BETWEEN CAST($nightend AS integer) AND CAST($nightstart AS integer) GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch')  GROUP BY strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly day-time min</option>
+        <option data-baseInterval="month" value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) BETWEEN CAST($nightend AS integer) AND CAST($nightstart AS integer) GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch')  GROUP BY strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly day-time min</option>
+        <option data-baseInterval="day"   value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) >= CAST($nightstart AS integer) OR CAST(strftime('%H', instant, 'unixepoch') AS integer) <= CAST($nightend AS integer) GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch') GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily night-time min</option>
+        <option data-baseInterval="week"  value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) >= CAST($nightstart AS integer) OR CAST(strftime('%H', instant, 'unixepoch') AS integer) <= CAST($nightend AS integer) GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch') GROUP BY strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly night-time min</option>
+        <option data-baseInterval="month" value="SELECT MIN(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) >= CAST($nightstart AS integer) OR CAST(strftime('%H', instant, 'unixepoch') AS integer) <= CAST($nightend AS integer) GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch') GROUP BY strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly night-time min</option>
+
+        <option data-baseInterval="day"   value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily max</option>
+        <option data-baseInterval="week"  value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot GROUP BY strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly max</option>
+        <option data-baseInterval="month" value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot GROUP BY strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly max</option>
+        <option data-baseInterval="day"   value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) BETWEEN CAST($nightend AS integer) AND CAST($nightstart AS integer) GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch')  GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily day-time max</option>
+        <option data-baseInterval="week"  value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) BETWEEN CAST($nightend AS integer) AND CAST($nightstart AS integer) GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch')  GROUP BY strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly day-time max</option>
+        <option data-baseInterval="month" value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) BETWEEN CAST($nightend AS integer) AND CAST($nightstart AS integer) GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch')  GROUP BY strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly day-time max</option>
+        <option data-baseInterval="day"   value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) >= CAST($nightstart AS integer) OR CAST(strftime('%H', instant, 'unixepoch') AS integer) <= CAST($nightend AS integer) GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch') GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch') ORDER BY instant DESC">Daily night-time max</option>
+        <option data-baseInterval="week"  value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) >= CAST($nightstart AS integer) OR CAST(strftime('%H', instant, 'unixepoch') AS integer) <= CAST($nightend AS integer) GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch') GROUP BY strftime('%Y-%W', instant, 'unixepoch') ORDER BY instant DESC">Weekly night-time max</option>
+        <option data-baseInterval="month" value="SELECT MAX(centsPerKWh) centsPerKWh, instant FROM spot WHERE CAST(strftime('%H', instant, 'unixepoch') AS integer) >= CAST($nightstart AS integer) OR CAST(strftime('%H', instant, 'unixepoch') AS integer) <= CAST($nightend AS integer) GROUP BY strftime('%Y-%m-%d', instant, 'unixepoch') GROUP BY strftime('%Y-%m', instant, 'unixepoch') ORDER BY instant DESC">Monthly night-time max</option>
       </select>
 
       <div persist-fields-query>
@@ -144,7 +165,7 @@
              value="SELECT * FROM spot WHERE instant BETWEEN strftime('%s', $start) AND strftime('%s', $end) ORDER BY instant DESC"
              placeholder="your query here..."
              hx-get="this.value"
-             hx-include="[name='start'],[name='end']"
+             hx-include="[name='start'],[name='end'],[name='nightstart'],[name='nightend']"
              hx-target="#table table"
              hx-trigger="change, change from:#start, change from:#end"
              handlebars-template="tablecontent"
@@ -248,11 +269,11 @@
             } else if (index == 0) {
               document.getElementsByName('price')[0].value = parseFloat(value);
             } else if (index == 1) {
-              document.getElementsByName('night-price')[0].value = parseFloat(value);
+              document.getElementsByName('nightprice')[0].value = parseFloat(value);
             } else if (index == 2) {
-              document.getElementsByName('night-start')[0].value = value;
+              document.getElementsByName('nightstart')[0].value = value;
             } else if (index == 3) {
-              document.getElementsByName('night-end')[0].value = value;
+              document.getElementsByName('nightend')[0].value = value;
             }
           });
           document.querySelectorAll('[name="transfer"] input').forEach(x => x.dispatchEvent(new Event('change')));
@@ -264,9 +285,9 @@
         initTooltips(document);
         window.init = initChart(dateFns,
                                 document.getElementsByName('price')[0],
-                                document.getElementsByName('night-price')[0],
-                                document.getElementsByName('night-start')[0],
-                                document.getElementsByName('night-end')[0],
+                                document.getElementsByName('nightprice')[0],
+                                document.getElementsByName('nightstart')[0],
+                                document.getElementsByName('nightend')[0],
                                 document.querySelector('[name="visible"][value="spot"]'),
                                 document.querySelector('[name="visible"][value="tax"]'),
                                 document.querySelector('[name="visible"][value="transfer"]'),
