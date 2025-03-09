@@ -2,7 +2,12 @@
     "openapi": "3.0.0",
     "info": {
         "title": "API for electricity spot prices in Finland",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "description": "<b>Terms of service:</b><p>This API is free to use for any legal purposes, as long as you have the right to use the data for those purposes.<br />Please consult the individual data sources for data usage rights.</p><p><b>Data sources:</b><dl><dt>Spot price data</dt><dd><a href='https://transparency.entsoe.eu/'>ENTSO-E Transparency Platform</a><br /><a href='https://dashboard.elering.ee/assets/api-doc.html'>Elering API</a></dd><dt>Transfer price data</dt><dd>Public websites of the transfer companies</dt></dl></p>",
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        }
     },
     "components": {
         "schemas": {
