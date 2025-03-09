@@ -5,4 +5,10 @@ set -eu
 
 . ./spot_env.sh
 
-./spot_load.sh | ./spot_parse.sh | ./spot_insert.sh | ./spot_add_missing.sh
+#entsoe
+./spot_load_entsoe.sh | ./spot_parse_entsoe.sh | ./spot_insert.sh
+
+#elering
+./spot_load_elering.sh | ./spot_parse_elering.sh | ./spot_insert.sh
+
+./spot_add_missing.sh

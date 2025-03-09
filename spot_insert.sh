@@ -6,6 +6,6 @@ set -eu
 # The data is always in UTC
 export TZ=UTC
 
-jq -r 'map([.instant, .deltaHours, .centsPerKWh]) | .[] | @csv' |
-sed -e "s/\"\([^,]*\)\",\(.*\),\(.*\)/INSERT OR REPLACE INTO spot(instant,centsPerKWh) VALUES (strftime('%s', datetime('\1', 'utc', '+\2 hours')), \3);/" |
-sqlite3 spot.db
+jq -r 'map([.instant, .deltaHours, .centsPerKWh]) | .[] | @csv'\
+  | sed -e "s/\"\([^,]*\)\",\(.*\),\(.*\)/INSERT INTO spot(instant,centsPerKWh) SELECT strftime('%s', datetime('\1', 'utc', '+\2 hours')), \3 WHERE strftime('%s', datetime('\1', 'utc', '+\2 hours')) NOT IN (SELECT instant FROM spot WHERE centsPerKWh IS NOT NULL);/" \
+  | sqlite3 spot.db
