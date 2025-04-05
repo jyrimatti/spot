@@ -1,6 +1,6 @@
 #! /usr/bin/env nix-shell
 #! nix-shell --pure --keep CREDENTIALS_DIRECTORY
-#! nix-shell -I channel:nixos-24.05-small -i dash -p dash nix
+#! nix-shell -I channel:nixos-24.05-small -i dash -p cacert dash nix
 set -eu
 
 . ./spot_env.sh
